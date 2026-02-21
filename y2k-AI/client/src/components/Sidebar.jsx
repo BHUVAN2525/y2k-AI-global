@@ -3,17 +3,24 @@ import { useMode } from '../contexts/ModeContext'
 import ModeToggle from './ModeToggle'
 
 const NAV_BLUE = [
+    { to: '/dashboard', icon: '📊', label: 'Command Center' },
     { to: '/blue/dashboard', icon: '🛡️', label: 'SOC Dashboard' },
     { to: '/blue/logs', icon: '📡', label: 'Log Viewer' },
     { to: '/blue/incidents', icon: '🚨', label: 'Incidents' },
-    { to: '/agent', icon: '🤖', label: 'AI Agent' },
+    { to: '/blue/assistant', icon: '🤖', label: 'SOC Assistant' },
+    { to: '/agent', icon: '💬', label: 'AI Agent' },
     { to: '/blue/zero-trust', icon: '🌐', label: 'Zero Trust' },
+    { to: '/sandbox', icon: '🧪', label: 'Malware Sandbox' },
+    { to: '/analyze', icon: '🔬', label: 'File Analyzer' },
 ]
 
 const NAV_RED = [
+    { to: '/dashboard', icon: '📊', label: 'Ops Center' },
     { to: '/red/recon', icon: '🔍', label: 'Recon' },
     { to: '/red/attack-graph', icon: '🗺️', label: 'Attack Graph' },
-    { to: '/agent', icon: '🤖', label: 'AI Agent' },
+    { to: '/red/copilot', icon: '🤖', label: 'Red Copilot' },
+    { to: '/agent', icon: '💬', label: 'AI Agent' },
+    { to: '/sandbox', icon: '🧪', label: 'Exploit Sandbox' },
 ]
 
 const NAV_INTEL_BLUE = [
@@ -21,7 +28,6 @@ const NAV_INTEL_BLUE = [
     { to: '/self-heal', icon: '🩹', label: 'Self Heal' },
     { to: '/memory-forensics', icon: '🧬', label: 'Memory Forensics' },
     { to: '/digital-twin', icon: '🏗️', label: 'Digital Twin' },
-    { to: '/architecture', icon: '🏛️', label: 'Architecture' },
     { to: '/blockchain-logs', icon: '⛓️', label: 'Blockchain Logs' },
 ]
 
@@ -30,6 +36,14 @@ const NAV_INTEL_RED = [
     { to: '/attack-prediction', icon: '🔮', label: 'Predictions' },
     { to: '/battlefield', icon: '⚔️', label: 'Battlefield' },
     { to: '/cyber-range', icon: '🎮', label: 'Cyber Range' },
+]
+
+const NAV_SHARED = [
+    { to: '/batch', icon: '📦', label: 'Batch Scanner' },
+    { to: '/reports', icon: '📋', label: 'Reports' },
+    { to: '/monitor', icon: '👁️', label: 'Live Monitor' },
+    { to: '/architecture', icon: '🏛️', label: 'Architecture' },
+    { to: '/settings', icon: '⚙️', label: 'Settings' },
 ]
 
 function NavItem({ to, icon, label, accent }) {
@@ -45,6 +59,19 @@ function NavItem({ to, icon, label, accent }) {
             <span style={{ fontSize: '1rem' }}>{icon}</span>
             <span>{label}</span>
         </NavLink>
+    )
+}
+
+function SectionHeader({ color, label }) {
+    return (
+        <div style={{
+            padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700,
+            color, textTransform: 'uppercase', letterSpacing: '0.1em',
+            display: 'flex', alignItems: 'center', gap: '0.4rem',
+            marginTop: '0.5rem'
+        }}>
+            {label}
+        </div>
     )
 }
 
@@ -74,7 +101,7 @@ export default function Sidebar() {
                         <div>
                             <div style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>Y2K CYBER AI</div>
                             <div style={{ fontSize: '0.65rem', color: isRed ? '#ff3366' : 'var(--cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                                {isRed ? '🔴 RED MODE' : '🔵 BLUE MODE'}
+                                {isRed ? '🔴 RED MODE — OFFENSE' : '🔵 BLUE MODE — DEFENSE'}
                             </div>
                         </div>
                     </div>
@@ -85,38 +112,41 @@ export default function Sidebar() {
 
             {/* Navigation */}
             <nav style={{ flex: 1, overflowY: 'auto', padding: '0.75rem 0.5rem' }}>
-                {/* Blue Mode */}
+                {/* Primary Mode Tools */}
                 {isBlue && (
-                    <div style={{ marginBottom: '0.5rem' }}>
-                        <div style={{ padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700, color: '#00d4ff', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            🔵 Blue Mode
-                        </div>
+                    <div style={{ marginBottom: '0.25rem' }}>
+                        <SectionHeader color="#00d4ff" label="🔵 Defense Tools" />
                         {NAV_BLUE.map(n => <NavItem key={n.to} {...n} accent="blue" />)}
                     </div>
                 )}
 
-                {/* Red Mode */}
                 {isRed && (
-                    <div>
-                        <div style={{ padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700, color: '#ff3366', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            🔴 Red Mode
-                        </div>
+                    <div style={{ marginBottom: '0.25rem' }}>
+                        <SectionHeader color="#ff3366" label="🔴 Offense Tools" />
                         {NAV_RED.map(n => <NavItem key={n.to} {...n} accent="red" />)}
                     </div>
                 )}
 
                 {/* Intelligence */}
-                <div style={{ marginTop: '0.5rem' }}>
-                    <div style={{ padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700, color: '#b388ff', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        🧠 Intelligence
-                    </div>
+                <div>
+                    <SectionHeader color="#b388ff" label="🧠 Intelligence" />
                     {isBlue && NAV_INTEL_BLUE.map(n => <NavItem key={n.to} {...n} accent="blue" />)}
                     {isRed && NAV_INTEL_RED.map(n => <NavItem key={n.to} {...n} accent="red" />)}
+                </div>
+
+                {/* Shared */}
+                <div>
+                    <SectionHeader color="#8892b0" label="🔧 Shared" />
+                    {NAV_SHARED.map(n => <NavItem key={n.to} {...n} accent={isRed ? 'red' : 'blue'} />)}
                 </div>
             </nav>
 
             {/* Footer */}
-            <div style={{ padding: '0.75rem 1rem', borderTop: `1px solid ${isRed ? 'rgba(255,51,102,0.15)' : 'var(--border)'}`, fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+            <div style={{
+                padding: '0.75rem 1rem',
+                borderTop: `1px solid ${isRed ? 'rgba(255,51,102,0.15)' : 'var(--border)'}`,
+                fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center'
+            }}>
                 Y2K Cyber AI v2.0 © 2025
             </div>
         </aside>
