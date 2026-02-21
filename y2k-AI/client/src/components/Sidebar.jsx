@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { useMode } from '../contexts/ModeContext'
 import ModeToggle from './ModeToggle'
 
@@ -12,6 +12,14 @@ const NAV_BLUE = [
     { to: '/blue/zero-trust', icon: '🌐', label: 'Zero Trust' },
     { to: '/sandbox', icon: '🧪', label: 'Malware Sandbox' },
     { to: '/analyze', icon: '🔬', label: 'File Analyzer' },
+    { to: '/batch', icon: '📦', label: 'Batch Scanner' },
+    { to: '/monitor', icon: '👁️', label: 'Live Monitor' },
+    { to: '/self-heal', icon: '🩹', label: 'Self Heal' },
+    { to: '/threat-intel', icon: '📡', label: 'Threat Intel' },
+    { to: '/memory-forensics', icon: '🧬', label: 'Memory Forensics' },
+    { to: '/digital-twin', icon: '🏗️', label: 'Digital Twin' },
+    { to: '/architecture', icon: '🏛️', label: 'Architecture' },
+    { to: '/blockchain-logs', icon: '⛓️', label: 'Blockchain Logs' },
 ]
 
 const NAV_RED = [
@@ -21,29 +29,10 @@ const NAV_RED = [
     { to: '/red/copilot', icon: '🤖', label: 'Red Copilot' },
     { to: '/agent', icon: '💬', label: 'AI Agent' },
     { to: '/sandbox', icon: '🧪', label: 'Exploit Sandbox' },
-]
-
-const NAV_INTEL_BLUE = [
-    { to: '/threat-intel', icon: '📡', label: 'Threat Intel' },
-    { to: '/self-heal', icon: '🩹', label: 'Self Heal' },
-    { to: '/memory-forensics', icon: '🧬', label: 'Memory Forensics' },
-    { to: '/digital-twin', icon: '🏗️', label: 'Digital Twin' },
-    { to: '/blockchain-logs', icon: '⛓️', label: 'Blockchain Logs' },
-]
-
-const NAV_INTEL_RED = [
     { to: '/swarm', icon: '🧠', label: 'Agent Swarm' },
     { to: '/attack-prediction', icon: '🔮', label: 'Predictions' },
     { to: '/battlefield', icon: '⚔️', label: 'Battlefield' },
     { to: '/cyber-range', icon: '🎮', label: 'Cyber Range' },
-]
-
-const NAV_SHARED = [
-    { to: '/batch', icon: '📦', label: 'Batch Scanner' },
-    { to: '/reports', icon: '📋', label: 'Reports' },
-    { to: '/monitor', icon: '👁️', label: 'Live Monitor' },
-    { to: '/architecture', icon: '🏛️', label: 'Architecture' },
-    { to: '/settings', icon: '⚙️', label: 'Settings' },
 ]
 
 function NavItem({ to, icon, label, accent }) {
@@ -62,21 +51,10 @@ function NavItem({ to, icon, label, accent }) {
     )
 }
 
-function SectionHeader({ color, label }) {
-    return (
-        <div style={{
-            padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700,
-            color, textTransform: 'uppercase', letterSpacing: '0.1em',
-            display: 'flex', alignItems: 'center', gap: '0.4rem',
-            marginTop: '0.5rem'
-        }}>
-            {label}
-        </div>
-    )
-}
-
 export default function Sidebar() {
     const { mode, isBlue, isRed } = useMode()
+    const accent = isRed ? 'red' : 'blue'
+    const tools = isBlue ? NAV_BLUE : NAV_RED
 
     return (
         <aside style={{
@@ -106,38 +84,36 @@ export default function Sidebar() {
                         </div>
                     </div>
                 </NavLink>
-                {/* Mode Toggle */}
                 <ModeToggle />
             </div>
 
-            {/* Navigation */}
+            {/* Navigation — completely changes per mode */}
             <nav style={{ flex: 1, overflowY: 'auto', padding: '0.75rem 0.5rem' }}>
-                {/* Primary Mode Tools */}
-                {isBlue && (
-                    <div style={{ marginBottom: '0.25rem' }}>
-                        <SectionHeader color="#00d4ff" label="🔵 Defense Tools" />
-                        {NAV_BLUE.map(n => <NavItem key={n.to} {...n} accent="blue" />)}
-                    </div>
-                )}
+                {/* Mode-specific tools — the ONLY tools visible */}
+                <div style={{
+                    padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700,
+                    color: isRed ? '#ff3366' : '#00d4ff', textTransform: 'uppercase',
+                    letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem'
+                }}>
+                    {isBlue ? '🔵 Defense Tools' : '🔴 Offense Tools'}
+                </div>
+                {tools.map(n => <NavItem key={n.to} {...n} accent={accent} />)}
 
-                {isRed && (
-                    <div style={{ marginBottom: '0.25rem' }}>
-                        <SectionHeader color="#ff3366" label="🔴 Offense Tools" />
-                        {NAV_RED.map(n => <NavItem key={n.to} {...n} accent="red" />)}
+                {/* Reports — standalone section */}
+                <div style={{ marginTop: '0.75rem' }}>
+                    <div style={{
+                        padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700,
+                        color: '#b388ff', textTransform: 'uppercase',
+                        letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem'
+                    }}>
+                        📋 Reports
                     </div>
-                )}
-
-                {/* Intelligence */}
-                <div>
-                    <SectionHeader color="#b388ff" label="🧠 Intelligence" />
-                    {isBlue && NAV_INTEL_BLUE.map(n => <NavItem key={n.to} {...n} accent="blue" />)}
-                    {isRed && NAV_INTEL_RED.map(n => <NavItem key={n.to} {...n} accent="red" />)}
+                    <NavItem to="/reports" icon="📋" label="Scan Reports" accent={accent} />
                 </div>
 
-                {/* Shared */}
-                <div>
-                    <SectionHeader color="#8892b0" label="🔧 Shared" />
-                    {NAV_SHARED.map(n => <NavItem key={n.to} {...n} accent={isRed ? 'red' : 'blue'} />)}
+                {/* Settings — minimal */}
+                <div style={{ marginTop: '0.5rem' }}>
+                    <NavItem to="/settings" icon="⚙️" label="Settings" accent={accent} />
                 </div>
             </nav>
 
