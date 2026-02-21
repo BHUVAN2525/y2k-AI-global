@@ -128,9 +128,23 @@ router.post('/test-ssh', (req, res) => {
         res.status(400).json(payload);
     });
 
-    const cfg = { host, port: Number(port), username, readyTimeout: 9000 };
+    const cfg = {
+        host, port: Number(port), username, readyTimeout: 12000,
+        tryKeyboard: true,
+        algorithms: {
+            kex: ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'ecdh-sha2-nistp256', 'ecdh-sha2-nistp384', 'ecdh-sha2-nistp521', 'diffie-hellman-group-exchange-sha256', 'diffie-hellman-group14-sha256', 'diffie-hellman-group14-sha1', 'diffie-hellman-group1-sha1'],
+            serverHostKey: ['ssh-ed25519', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa'],
+            cipher: ['aes128-gcm', 'aes128-gcm@openssh.com', 'aes256-gcm', 'aes256-gcm@openssh.com', 'aes128-ctr', 'aes192-ctr', 'aes256-ctr', 'chacha20-poly1305@openssh.com']
+        }
+    };
     if (authMethod === 'key' && privateKey) cfg.privateKey = privateKey;
     else cfg.password = password;
+
+    // Handle keyboard-interactive auth
+    conn.on('keyboard-interactive', (name, instructions, instructionsLang, prompts, finish) => {
+        console.log('[SSH TEST] keyboard-interactive auth requested');
+        finish([password || '']);
+    });
 
     conn.connect(cfg);
 });

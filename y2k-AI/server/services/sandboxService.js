@@ -38,13 +38,44 @@ function createSession(sshConfig) {
             });
         });
 
-        conn.on('error', err => reject(new Error(`SSH connection failed: ${err.message}`)));
+        conn.on('error', err => {
+            const msg = err.level === 'client-authentication'
+                ? `Authentication failed for ${sshConfig.username}@${sshConfig.host} — check password or enable PasswordAuthentication in sshd_config`
+                : `SSH connection failed: ${err.message}`;
+            reject(new Error(msg));
+        });
+
+        // Handle keyboard-interactive auth (used by many Linux VMs)
+        conn.on('keyboard-interactive', (name, instructions, instructionsLang, prompts, finish) => {
+            console.log('[SSH] keyboard-interactive auth requested');
+            finish([sshConfig.password || '']);
+        });
 
         const connectConfig = {
             host: sshConfig.host,
             port: sshConfig.port || 22,
             username: sshConfig.username,
-            readyTimeout: 10000,
+            readyTimeout: 15000,
+            tryKeyboard: true,  // Enable keyboard-interactive fallback
+        };
+
+        // Support older SSH server algorithms
+        connectConfig.algorithms = {
+            kex: [
+                'curve25519-sha256', 'curve25519-sha256@libssh.org',
+                'ecdh-sha2-nistp256', 'ecdh-sha2-nistp384', 'ecdh-sha2-nistp521',
+                'diffie-hellman-group-exchange-sha256', 'diffie-hellman-group14-sha256',
+                'diffie-hellman-group14-sha1', 'diffie-hellman-group1-sha1'
+            ],
+            serverHostKey: [
+                'ssh-ed25519', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384',
+                'ecdsa-sha2-nistp521', 'rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa'
+            ],
+            cipher: [
+                'aes128-gcm', 'aes128-gcm@openssh.com', 'aes256-gcm', 'aes256-gcm@openssh.com',
+                'aes128-ctr', 'aes192-ctr', 'aes256-ctr',
+                'chacha20-poly1305@openssh.com'
+            ]
         };
 
         if (sshConfig.authMethod === 'key') {
@@ -53,6 +84,7 @@ function createSession(sshConfig) {
             connectConfig.password = sshConfig.password;
         }
 
+        console.log(`[SSH] Connecting to ${sshConfig.host}:${sshConfig.port || 22} as ${sshConfig.username}`);
         conn.connect(connectConfig);
     });
 }
