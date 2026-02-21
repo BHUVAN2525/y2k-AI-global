@@ -2,33 +2,32 @@ import { NavLink } from 'react-router-dom'
 import { useMode } from '../contexts/ModeContext'
 import ModeToggle from './ModeToggle'
 
+// ─── BLUE MODE: Malware Analysis & Defense ──────────────────────────────────
 const NAV_BLUE = [
     { to: '/dashboard', icon: '📊', label: 'Command Center' },
     { to: '/blue/dashboard', icon: '🛡️', label: 'SOC Dashboard' },
     { to: '/blue/logs', icon: '📡', label: 'Log Viewer' },
     { to: '/blue/incidents', icon: '🚨', label: 'Incidents' },
-    { to: '/blue/assistant', icon: '🤖', label: 'SOC Assistant' },
-    { to: '/agent', icon: '💬', label: 'AI Agent' },
-    { to: '/blue/zero-trust', icon: '🌐', label: 'Zero Trust' },
-    { to: '/sandbox', icon: '🧪', label: 'Malware Sandbox' },
+    { to: '/blue/assistant', icon: '💬', label: 'SOC Assistant' },
     { to: '/analyze', icon: '🔬', label: 'File Analyzer' },
+    { to: '/sandbox', icon: '🧪', label: 'Malware Sandbox' },
     { to: '/batch', icon: '📦', label: 'Batch Scanner' },
     { to: '/monitor', icon: '👁️', label: 'Live Monitor' },
     { to: '/self-heal', icon: '🩹', label: 'Self Heal' },
-    { to: '/threat-intel', icon: '📡', label: 'Threat Intel' },
+    { to: '/threat-intel', icon: '📊', label: 'Threat Intel' },
     { to: '/memory-forensics', icon: '🧬', label: 'Memory Forensics' },
     { to: '/digital-twin', icon: '🏗️', label: 'Digital Twin' },
-    { to: '/architecture', icon: '🏛️', label: 'Architecture' },
+    { to: '/blue/zero-trust', icon: '🌐', label: 'Zero Trust' },
     { to: '/blockchain-logs', icon: '⛓️', label: 'Blockchain Logs' },
+    { to: '/architecture', icon: '🏛️', label: 'Architecture' },
 ]
 
+// ─── RED MODE: Malware Design & Offensive Simulation ────────────────────────
 const NAV_RED = [
     { to: '/dashboard', icon: '📊', label: 'Ops Center' },
     { to: '/red/recon', icon: '🔍', label: 'Recon' },
     { to: '/red/attack-graph', icon: '🗺️', label: 'Attack Graph' },
-    { to: '/red/copilot', icon: '🤖', label: 'Red Copilot' },
-    { to: '/agent', icon: '💬', label: 'AI Agent' },
-    { to: '/sandbox', icon: '🧪', label: 'Exploit Sandbox' },
+    { to: '/red/copilot', icon: '💬', label: 'Red Copilot' },
     { to: '/swarm', icon: '🧠', label: 'Agent Swarm' },
     { to: '/attack-prediction', icon: '🔮', label: 'Predictions' },
     { to: '/battlefield', icon: '⚔️', label: 'Battlefield' },
@@ -52,7 +51,7 @@ function NavItem({ to, icon, label, accent }) {
 }
 
 export default function Sidebar() {
-    const { mode, isBlue, isRed } = useMode()
+    const { isBlue, isRed } = useMode()
     const accent = isRed ? 'red' : 'blue'
     const tools = isBlue ? NAV_BLUE : NAV_RED
 
@@ -79,7 +78,7 @@ export default function Sidebar() {
                         <div>
                             <div style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>Y2K CYBER AI</div>
                             <div style={{ fontSize: '0.65rem', color: isRed ? '#ff3366' : 'var(--cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                                {isRed ? '🔴 RED MODE — OFFENSE' : '🔵 BLUE MODE — DEFENSE'}
+                                {isRed ? '🔴 RED — OFFENSE' : '🔵 BLUE — DEFENSE'}
                             </div>
                         </div>
                     </div>
@@ -87,33 +86,43 @@ export default function Sidebar() {
                 <ModeToggle />
             </div>
 
-            {/* Navigation — completely changes per mode */}
+            {/* Navigation */}
             <nav style={{ flex: 1, overflowY: 'auto', padding: '0.75rem 0.5rem' }}>
-                {/* Mode-specific tools — the ONLY tools visible */}
+                {/* Mode tools — ZERO overlap between modes */}
                 <div style={{
                     padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700,
                     color: isRed ? '#ff3366' : '#00d4ff', textTransform: 'uppercase',
-                    letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem'
+                    letterSpacing: '0.1em'
                 }}>
-                    {isBlue ? '🔵 Defense Tools' : '🔴 Offense Tools'}
+                    {isBlue ? '🔵 Malware Analysis' : '🔴 Offensive Simulation'}
                 </div>
                 {tools.map(n => <NavItem key={n.to} {...n} accent={accent} />)}
 
-                {/* Reports — standalone section */}
+                {/* AI Agent — single agent, adapts to mode */}
                 <div style={{ marginTop: '0.75rem' }}>
                     <div style={{
                         padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700,
-                        color: '#b388ff', textTransform: 'uppercase',
-                        letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem'
+                        color: '#b388ff', textTransform: 'uppercase', letterSpacing: '0.1em'
+                    }}>
+                        🤖 AI Agent
+                    </div>
+                    <NavItem
+                        to="/agent"
+                        icon={isBlue ? '🛡️' : '⚔️'}
+                        label={isBlue ? 'Blue Defender Agent' : 'Red Attack Agent'}
+                        accent={accent}
+                    />
+                </div>
+
+                {/* Reports — standalone */}
+                <div style={{ marginTop: '0.75rem' }}>
+                    <div style={{
+                        padding: '0.4rem 1rem', fontSize: '0.65rem', fontWeight: 700,
+                        color: '#8892b0', textTransform: 'uppercase', letterSpacing: '0.1em'
                     }}>
                         📋 Reports
                     </div>
                     <NavItem to="/reports" icon="📋" label="Scan Reports" accent={accent} />
-                </div>
-
-                {/* Settings — minimal */}
-                <div style={{ marginTop: '0.5rem' }}>
-                    <NavItem to="/settings" icon="⚙️" label="Settings" accent={accent} />
                 </div>
             </nav>
 
