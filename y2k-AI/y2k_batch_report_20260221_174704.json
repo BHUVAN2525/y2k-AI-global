@@ -1,0 +1,61 @@
+{
+    "scan_directory": "test_samples",
+    "timestamp": "2026-02-21T17:47:04.306281",
+    "elapsed_seconds": 0.16,
+    "total_files": 4,
+    "summary": {
+        "malware_detected": 0,
+        "clean_files": 4,
+        "errors": 0
+    },
+    "results": [
+        {
+            "file_path": "test_samples\\circularlist.exe",
+            "filename": "circularlist.exe",
+            "category": "executable",
+            "size_bytes": 127567,
+            "is_malware": false,
+            "confidence": 0.5,
+            "risk_score": 50,
+            "malware_type": "None",
+            "error": null,
+            "sha256": "9e1be4f020c7fc28d2e21c1528fc5cb59919d531cc925133c112ba58956bb918"
+        },
+        {
+            "file_path": "test_samples\\Hello.exe",
+            "filename": "Hello.exe",
+            "category": "executable",
+            "size_bytes": 125232,
+            "is_malware": false,
+            "confidence": 0.5,
+            "risk_score": 50,
+            "malware_type": "None",
+            "error": null,
+            "sha256": "94e8c97dd2313778612833c0fdb88a5c97158bd572e4d36770114d3c193a0941"
+        },
+        {
+            "file_path": "test_samples\\node.exe",
+            "filename": "node.exe",
+            "category": "executable",
+            "size_bytes": 125346,
+            "is_malware": false,
+            "confidence": 0.5,
+            "risk_score": 50,
+            "malware_type": "None",
+            "error": null,
+            "sha256": "0adb9c625c0751cc240fffa58ca282f7508d20359d1e05404d5820bd1fcaedeb"
+        },
+        {
+            "file_path": "test_samples\\attention.pdf",
+            "filename": "attention.pdf",
+            "category": "document",
+            "size_bytes": 569417,
+            "is_malware": false,
+            "confidence": 0.0,
+            "risk_score": 0,
+            "malware_type": "None",
+            "error": null,
+            "sha256": "d87d482d5ae7960e2e43d7dd6d21377e60e73e8fce1bf2a01aff7aca8a08c537"
+        }
+    ]
+}
