@@ -8,7 +8,7 @@
 
 **Y2K Cyber AI** is a next-generation cybersecurity platform that unifies defensive analysis, offensive simulation, threat intelligence, and autonomous security operations into a single AI-driven interface.
 
-Built across **5 implementation phases**, the platform delivers **15+ features** spanning a React frontend (11 pages), a Node.js API gateway, Python analysis engines, and multi-agent AI orchestration powered by Google Gemini.
+Built across **5 implementation phases**, the platform delivers **15+ features** spanning a React frontend (11 pages), a Node.js API gateway, and multi-agent AI orchestration powered by Google Gemini.
 
 ---
 
@@ -22,11 +22,11 @@ Built across **5 implementation phases**, the platform delivers **15+ features**
 │            Node.js API Gateway                  │
 │   Express • WebSocket • Agent Router • SOAR     │
 ├───────────────┬─────────────┬───────────────────┤
-│  AI Agents    │  Services   │  Python Engines   │
-│  Supervisor   │  Threat     │  Self-Heal        │
-│  ThreatIntel  │  Intel      │  Memory           │
-│  Malware      │  Self-Heal  │  Forensics        │
-│  Compliance   │  Policy Gen │  ML Classifier    │
+│  AI Agents    │  Services   │  Core Engines     │
+│  Supervisor   │  Threat     │  Self-Heal (JS)   │
+│  ThreatIntel  │  Intel      │  Forensics (JS)   │
+│  Malware      │  Self-Heal  │  ML Classifier    │
+│  Compliance   │  Policy Gen │  (via Gemini/JS)  │
 ├───────────────┴─────────────┴───────────────────┤
 │  External APIs: Gemini • VirusTotal • AbuseIPDB │
 └─────────────────────────────────────────────────┘
@@ -79,10 +79,9 @@ Built across **5 implementation phases**, the platform delivers **15+ features**
 |---|---|
 | **Frontend** | React 18 + Vite + Framer Motion + Recharts |
 | **Backend** | Node.js + Express + WebSocket |
-| **AI Engine** | Google Gemini 1.5 Flash + Heuristic Fallback |
-| **ML Engine** | Python FastAPI + scikit-learn (Random Forest) |
-| **Database** | MongoDB (optional, graceful fallback) |
-| **Sandbox** | SSH2 (Secure Shell) integration |
+| **AI Engine** | Google Gemini 2.0 Flash + Heuristic Fallback |
+| **Database** | MongoDB (Primary) / Local JSON Fallback |
+| **Sandbox** | SSH2 (Secure Shell) with Dynamic Port Forwarding |
 | **External APIs** | VirusTotal, AbuseIPDB |
 
 ---
@@ -106,27 +105,23 @@ y2k-the-ai-agent/
 │           ├── ArchitectureDesigner.jsx
 │           ├── BlockchainLogs.jsx
 │           └── blue/ZeroTrust.jsx
-├── server/                    # Node.js API Gateway
+├── server/                    # Node.js API Gateway (Unified MERN)
 │   ├── agents/                # AI Agents
 │   │   ├── supervisorAgent.js
 │   │   ├── threatIntelAgent.js
 │   │   ├── malwareAnalysisAgent.js
 │   │   └── complianceAgent.js
-│   ├── services/              # Business Logic
+│   ├── services/              # Business Logic & Forensics
 │   │   ├── threatIntelService.js
 │   │   ├── selfHealService.js
-│   │   └── policyGenerator.js
+│   │   ├── policyGenerator.js
+│   │   └── sandboxService.js (Robust SSH Integration)
 │   └── routes/                # API Routes
 │       ├── agent.js
 │       ├── threatintel.js
 │       ├── selfheal.js
 │       ├── blue/logs.js, soar.js
 │       └── red/recon.js, cve.js
-├── python_api/                # Python Analysis Engines
-│   ├── main.py
-│   ├── selfHealEngine.py
-│   └── memoryForensics.py
-├── ML_model/                  # Trained ML Models
 ├── start.bat                  # One-click launcher (Windows)
 └── README.md
 ```
@@ -144,17 +139,14 @@ y2k-the-ai-agent/
 
 ```bash
 # Clone the repository
-git clone https://github.com/BHUVAN2525/y2k-AI.git
-cd y2k-AI
+git clone https://github.com/BHUVAN2525/y2k-AI-global.git
+cd y2k-AI-global
 
 # Install frontend dependencies
 cd client && npm install
 
 # Install backend dependencies
 cd ../server && npm install
-
-# Install Python dependencies
-cd ../python_api && pip install -r ../requirements.txt
 ```
 
 ### Launch
@@ -164,22 +156,20 @@ cd ../python_api && pip install -r ../requirements.txt
 Double-click start.bat
 ```
 
-**Option 2: Manual (3 terminals)**
+**Option 2: Manual (2 terminals)**
 ```bash
-# Terminal 1: Python Engine (port 8001)
-cd python_api
-python -m uvicorn main:app --port 8001 --reload
-
-# Terminal 2: Node.js Server (port 5000)
+# Terminal 1: Node.js Server (port 5000)
 cd server
 npm run dev
 
-# Terminal 3: React Frontend (port 5173)
+# Terminal 2: React Frontend (port 5173)
 cd client
 npm run dev
 ```
 
 Open **http://localhost:5173** in your browser.
+
+> **Troubleshooting:** if any page shows a 500 error (Settings, Sandbox, Dashboard, etc.), check the terminal where the Node server is running. Look for lines prefixed with `[SETTINGS]`, `[SSH TEST]`, `[AGENT CHAT]`, or similar; they will describe the underlying problem (invalid SSH credentials, file write permission, missing Gemini key, etc.).
 
 | Service | URL |
 |---------|-----|
@@ -203,6 +193,30 @@ MONGO_URI=mongodb://localhost:27017/cerebus  # Optional
 ```
 
 Keys are stored in `server/config/settings.json`.
+
+### SSH Sandbox (VM)
+
+The dynamic analysis sandbox runs commands over SSH on a VM you provide. To configure it:
+
+1. **Set SSH fields** on the `/settings` page:
+   - Host/IP, port (usually 22), username and either password or private key.
+   - Click **Test Connection** to validate reachability.
+2. **Common connection issues:**
+   - Ensure the VM is running an SSH server and the network is reachable from the host where the Node server runs.
+   - Use bridged or host‑only networking in VirtualBox/VMware so the host can see the guest.
+   - Disable firewalls or open port 22 on the guest OS.
+   - From the host machine run `ssh user@host` to verify credentials and network.
+   - If you see `ECONNREFUSED` or `Timeout`, check the port and that the SSH service is listening.
+   - Authentication errors (`All configured authentication methods failed`, `Permission denied`) mean the username/password/key are incorrect.
+3. **Debugging:**
+   - The server logs `[SSH TEST] connection error:` with the full error object when the test fails.
+   - The client shows error details (code/level) in the notification.
+
+> ⚠️ The SSH settings are only stored locally in your browser (passwords/keys are not sent to disk), so if you clear storage you'll need to re-enter them.
+
+### Environment Variables & Restart
+
+Some configuration (e.g. `PYTHON_API_URL`) is read once at server startup. After changing environment variables or editing `server/config/settings.json`, restart the Node process to apply the changes.
 
 ---
 
