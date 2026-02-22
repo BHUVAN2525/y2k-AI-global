@@ -297,7 +297,7 @@ function FeatureChart({ features }) {
                 <YAxis type="category" dataKey="name" tick={{ fill: '#8892a4', fontSize: 11 }} width={120} />
                 <Tooltip contentStyle={{ background: '#111827', border: '1px solid #1e2d45', borderRadius: 8 }} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {data.map((d, i) => <Cell key={i} fill={d.positive ? '#ff3366' : '#00d4ff'} />)}
+                    {data.map((d, i) => <Cell key={i} fill={d.positive ? 'var(--danger)' : 'var(--info)'} />)}
                 </Bar>
             </BarChart>
         </ResponsiveContainer>

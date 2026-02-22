@@ -17,10 +17,10 @@ function MessageBubble({ msg }) {
     const isUser = msg.role === 'user'
     return (
         <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start', marginBottom: '1rem' }}>
-            {!isUser && <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4ff, #0066cc)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0, marginRight: '0.75rem' }}>🛡️</div>}
+            {!isUser && <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg-secondary), #0066cc)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0, marginRight: '0.75rem' }}>🛡️</div>}
             <div style={{
                 maxWidth: '75%', padding: '0.75rem 1rem', borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                background: isUser ? 'linear-gradient(135deg, #00d4ff, #0066cc)' : 'var(--bg-card)',
+                background: isUser ? 'var(--bg-secondary), #0066cc)' : 'var(--bg-card)',
                 border: isUser ? 'none' : '1px solid var(--border)',
                 color: isUser ? '#060b18' : 'var(--text-primary)',
                 fontSize: '0.875rem', lineHeight: 1.6, whiteSpace: 'pre-wrap'
@@ -95,7 +95,7 @@ export default function SOCAssistant() {
                         )}
                         {loading && steps.length === 0 && (
                             <div style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem 1rem', alignItems: 'center' }}>
-                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00d4ff', animation: 'blink 1s infinite' }} />
+                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--info)', animation: 'blink 1s infinite' }} />
                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Analyzing...</span>
                             </div>
                         )}

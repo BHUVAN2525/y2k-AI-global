@@ -5,7 +5,7 @@ import axios from 'axios'
 const pageVariants = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0, transition: { duration: 0.3 } } }
 
 function RiskBar({ value, label }) {
-    const color = value >= 0.7 ? '#ff3366' : value >= 0.4 ? '#ff8800' : '#ffcc00'
+    const color = value >= 0.7 ? 'var(--danger)' : value >= 0.4 ? '#ff8800' : 'var(--warning)'
     return (
         <div style={{ marginBottom: '0.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '0.25rem' }}>
@@ -89,13 +89,13 @@ export default function ReconDashboard() {
         setSubLoading(false)
     }
 
-    const RISK_COLOR = { critical: '#ff3366', high: '#ff8800', medium: '#ffcc00', low: '#00ff88', info: '#00d4ff' }
+    const RISK_COLOR = { critical: 'var(--danger)', high: '#ff8800', medium: 'var(--warning)', low: 'var(--success)', info: 'var(--info)' }
 
     return (
         <motion.div className="page-container" variants={pageVariants} initial="initial" animate="animate">
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                 <div className="page-title" style={{ marginBottom: 0 }}>🔴 Recon Dashboard</div>
-                <span style={{ background: 'rgba(255,51,102,0.15)', color: '#ff3366', border: '1px solid rgba(255,51,102,0.3)', padding: '0.2rem 0.6rem', borderRadius: 100, fontSize: '0.7rem', fontWeight: 700 }}>⚠️ AUTHORIZED LAB ONLY</span>
+                <span style={{ background: 'rgba(255,51,102,0.15)', color: 'var(--danger)', border: '1px solid rgba(255,51,102,0.3)', padding: '0.2rem 0.6rem', borderRadius: 100, fontSize: '0.7rem', fontWeight: 700 }}>⚠️ AUTHORIZED LAB ONLY</span>
             </div>
             <div className="page-subtitle">Port scanning, service enumeration, and subdomain discovery</div>
 
@@ -119,7 +119,7 @@ export default function ReconDashboard() {
                                 🔴 Scanning {target} — checking {22} common ports...
                             </div>
                             <div className="progress-bar" style={{ marginTop: '0.5rem' }}>
-                                <div className="progress-fill" style={{ width: '60%', background: '#ff3366', animation: 'none' }} />
+                                <div className="progress-fill" style={{ width: '60%', background: 'var(--danger)', animation: 'none' }} />
                             </div>
                         </div>
                     )}
@@ -139,7 +139,7 @@ export default function ReconDashboard() {
                             {subdomains.slice(0, 20).map((s, i) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.3rem 0', borderBottom: '1px solid var(--border)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
                                     <span>{s.host}</span>
-                                    <span style={{ color: s.resolved ? '#00ff88' : '#4a5568' }}>{s.ip || 'unresolved'}</span>
+                                    <span style={{ color: s.resolved ? 'var(--success)' : '#4a5568' }}>{s.ip || 'unresolved'}</span>
                                 </div>
                             ))}
                         </div>
@@ -166,7 +166,7 @@ export default function ReconDashboard() {
                                                 <td style={{ fontWeight: 600 }}>{p.service}</td>
                                                 <td><span className={`badge sev-${p.risk}`} style={{ fontSize: '0.7rem' }}>{p.risk?.toUpperCase()}</span></td>
                                                 <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: 200 }}>{p.banner?.slice(0, 60) || '—'}</td>
-                                                <td style={{ color: corr?.cves?.length ? '#ff3366' : '#4a5568', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
+                                                <td style={{ color: corr?.cves?.length ? 'var(--danger)' : '#4a5568', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
                                                     {corr?.cves?.length ? `${corr.cves.length} CVEs` : '—'}
                                                 </td>
                                             </tr>
@@ -195,12 +195,12 @@ export default function ReconDashboard() {
                             {c.cves.map(cve => (
                                 <div key={cve.id} style={{ fontSize: '0.8rem', padding: '0.3rem 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
                                     <div>
-                                        <span style={{ color: '#ff3366', fontFamily: 'var(--font-mono)', marginRight: '0.5rem' }}>{cve.id}</span>
+                                        <span style={{ color: 'var(--danger)', fontFamily: 'var(--font-mono)', marginRight: '0.5rem' }}>{cve.id}</span>
                                         <span style={{ color: 'var(--text-secondary)' }}>{cve.desc}</span>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                                         <span style={{ color: RISK_COLOR[cve.severity], fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>CVSS {cve.cvss}</span>
-                                        {cve.exploit && <span style={{ color: '#ff3366', fontSize: '0.7rem' }}>⚡ EXPLOIT</span>}
+                                        {cve.exploit && <span style={{ color: 'var(--danger)', fontSize: '0.7rem' }}>⚡ EXPLOIT</span>}
                                     </div>
                                 </div>
                             ))}

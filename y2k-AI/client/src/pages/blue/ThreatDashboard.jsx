@@ -5,13 +5,13 @@ import { AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Responsive
 
 const pageVariants = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0, transition: { duration: 0.3 } } }
 
-const SEV_COLORS = { critical: '#ff3366', high: '#ff8800', medium: '#ffcc00', low: '#00ff88', info: '#00d4ff' }
+const SEV_COLORS = { critical: 'var(--danger)', high: '#ff8800', medium: 'var(--warning)', low: 'var(--success)', info: 'var(--info)' }
 
 function SevBadge({ sev }) {
     return <span className={`badge sev-${sev}`} style={{ fontSize: '0.7rem' }}>{sev?.toUpperCase()}</span>
 }
 
-function StatCard({ label, value, sub, color = '#00d4ff', icon }) {
+function StatCard({ label, value, sub, color = 'var(--info)', icon }) {
     return (
         <div className="stat-card" style={{ borderLeft: `3px solid ${color}` }}>
             <div className="stat-label">{icon} {label}</div>
@@ -55,7 +55,7 @@ export default function ThreatDashboard() {
 
     const timeline = stats?.timeline?.map(t => ({ hour: `${t._id}:00`, threats: t.threats, total: t.total })) || []
     const mitreData = stats?.byMitre?.map(m => ({ name: m._id || 'Unknown', value: m.count })) || []
-    const COLORS = ['#ff3366', '#ff8800', '#ffcc00', '#9b59b6', '#00d4ff', '#00ff88', '#ff6b35', '#c0392b']
+    const COLORS = ['var(--danger)', '#ff8800', 'var(--warning)', 'var(--primary)', 'var(--info)', 'var(--success)', '#ff6b35', '#c0392b']
 
     return (
         <motion.div className="page-container" variants={pageVariants} initial="initial" animate="animate">
@@ -64,10 +64,10 @@ export default function ThreatDashboard() {
 
             {/* Stat Cards */}
             <div className="stat-grid">
-                <StatCard icon="📋" label="Total Logs" value={stats?.totalLogs?.toLocaleString()} sub="All ingested events" color="#00d4ff" />
+                <StatCard icon="📋" label="Total Logs" value={stats?.totalLogs?.toLocaleString()} sub="All ingested events" color="var(--info)" />
                 <StatCard icon="⚠️" label="Threats Today" value={stats?.threatsToday} sub="Score ≥ 30" color="#ff8800" />
-                <StatCard icon="🚨" label="Open Incidents" value={stats?.openIncidents} sub="Requires attention" color="#ff3366" />
-                <StatCard icon="💀" label="Critical Alerts" value={stats?.criticalIncidents} sub="Immediate action needed" color="#ff3366" />
+                <StatCard icon="🚨" label="Open Incidents" value={stats?.openIncidents} sub="Requires attention" color="var(--danger)" />
+                <StatCard icon="💀" label="Critical Alerts" value={stats?.criticalIncidents} sub="Immediate action needed" color="var(--danger)" />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
@@ -78,15 +78,15 @@ export default function ThreatDashboard() {
                         <AreaChart data={timeline}>
                             <defs>
                                 <linearGradient id="tGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#ff3366" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#ff3366" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="var(--danger)" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="var(--danger)" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <XAxis dataKey="hour" tick={{ fill: '#8892a4', fontSize: 11 }} />
                             <YAxis tick={{ fill: '#8892a4', fontSize: 11 }} />
                             <Tooltip contentStyle={{ background: '#0d1628', border: '1px solid #1a2d4a', borderRadius: 8 }} />
-                            <Area type="monotone" dataKey="threats" stroke="#ff3366" fill="url(#tGrad)" name="Threats" />
-                            <Area type="monotone" dataKey="total" stroke="#00d4ff" fill="none" strokeDasharray="3 3" name="Total Logs" />
+                            <Area type="monotone" dataKey="threats" stroke="var(--danger)" fill="url(#tGrad)" name="Threats" />
+                            <Area type="monotone" dataKey="total" stroke="var(--info)" fill="none" strokeDasharray="3 3" name="Total Logs" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
@@ -123,7 +123,7 @@ export default function ThreatDashboard() {
                                     <tr key={inc._id}>
                                         <td><SevBadge sev={inc.severity} /></td>
                                         <td style={{ maxWidth: 280 }}>{inc.title}</td>
-                                        <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: '#9b59b6' }}>{inc.mitre_technique}</span></td>
+                                        <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--primary)' }}>{inc.mitre_technique}</span></td>
                                         <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{inc.source_ip || '—'}</td>
                                         <td><span className={`badge ${inc.status === 'open' ? 'badge-danger' : 'badge-info'}`}>{inc.status}</span></td>
                                         <td style={{ color: '#4a5568', fontSize: '0.8rem' }}>{new Date(inc.timestamp).toLocaleTimeString()}</td>

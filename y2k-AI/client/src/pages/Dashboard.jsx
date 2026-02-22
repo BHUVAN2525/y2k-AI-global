@@ -68,7 +68,7 @@ export default function Dashboard() {
 
     const tools = isBlue ? BLUE_TOOLS : RED_TOOLS
     const workflow = isBlue ? BLUE_WORKFLOW : RED_WORKFLOW
-    const accent = isBlue ? '#00d4ff' : '#ff3366'
+    const accent = 'var(--info)' // Locked color regardless of mode
 
     return (
         <motion.div className="page-container" variants={pageVariants} initial="initial" animate="animate" exit="exit">
@@ -87,9 +87,7 @@ export default function Dashboard() {
                 </div>
                 <h1 style={{
                     fontSize: '2rem', fontWeight: 800,
-                    background: isBlue
-                        ? 'linear-gradient(135deg, #00d4ff, #0088cc, #fff)'
-                        : 'linear-gradient(135deg, #ff3366, #ff6644, #ffcc00)',
+                    background: 'var(--bg-secondary), #0088cc, #fff)',
                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                     marginBottom: '0.3rem'
                 }}>
@@ -137,18 +135,18 @@ export default function Dashboard() {
             {/* Stats */}
             {isBlue && (
                 <div className="stat-grid" style={{ marginBottom: '1.5rem' }}>
-                    <StatCard label="Total Logs" value={stats?.totalLogs?.toLocaleString() ?? '—'} color="#00d4ff" icon="📋" />
+                    <StatCard label="Total Logs" value={stats?.totalLogs?.toLocaleString() ?? '—'} color="var(--info)" icon="📋" />
                     <StatCard label="Threats Today" value={stats?.threatsToday ?? '—'} color="#ff8800" icon="⚠️" />
-                    <StatCard label="Open Incidents" value={stats?.openIncidents ?? '—'} color="#ff3366" icon="🚨" />
-                    <StatCard label="Critical" value={stats?.criticalIncidents ?? '—'} color="#ff3366" icon="💀" />
+                    <StatCard label="Open Incidents" value={stats?.openIncidents ?? '—'} color="var(--danger)" icon="🚨" />
+                    <StatCard label="Critical" value={stats?.criticalIncidents ?? '—'} color="var(--danger)" icon="💀" />
                 </div>
             )}
             {isRed && (
                 <div className="stat-grid" style={{ marginBottom: '1.5rem' }}>
-                    <StatCard label="Recon Scans" value={stats?.total_scans ?? '—'} color="#ff3366" icon="🔍" />
+                    <StatCard label="Recon Scans" value={stats?.total_scans ?? '—'} color="var(--danger)" icon="🔍" />
                     <StatCard label="Vulns Found" value={stats?.malware_detected ?? '—'} color="#ff8800" icon="🔓" />
-                    <StatCard label="Attack Paths" value={stats?.clean_files ?? '—'} color="#ffcc00" icon="🗺️" />
-                    <StatCard label="Exploits" value={stats ? `${stats.detection_rate}%` : '—'} color="#00ff88" icon="⚡" />
+                    <StatCard label="Attack Paths" value={stats?.clean_files ?? '—'} color="var(--warning)" icon="🗺️" />
+                    <StatCard label="Exploits" value={stats ? `${stats.detection_rate}%` : '—'} color="var(--success)" icon="⚡" />
                 </div>
             )}
 
@@ -174,15 +172,15 @@ export default function Dashboard() {
 
                     {/* AI Agent card — adapts to mode */}
                     <Link to="/agent" style={{ textDecoration: 'none' }}>
-                        <motion.div className="card" whileHover={{ y: -3, borderColor: '#b388ff' }} style={{
+                        <motion.div className="card" whileHover={{ y: -3, borderColor: 'var(--primary)' }} style={{
                             cursor: 'pointer', padding: '0.85rem',
-                            borderColor: '#b388ff40',
+                            borderColor: 'var(--primary)40',
                             background: 'rgba(179,136,255,0.04)'
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                                 <div style={{ fontSize: '1.3rem', flexShrink: 0 }}>🤖</div>
                                 <div>
-                                    <div style={{ fontWeight: 700, color: '#b388ff', fontSize: '0.85rem', marginBottom: '0.15rem' }}>
+                                    <div style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.85rem', marginBottom: '0.15rem' }}>
                                         {isBlue ? 'Blue Defender Agent' : 'Red Attack Agent'}
                                     </div>
                                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>

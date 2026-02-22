@@ -59,7 +59,7 @@ export default function ModeToggle() {
                             }}
                         >
                             <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>⚠️</div>
-                            <h2 style={{ color: '#ff3366', marginBottom: '0.75rem', fontSize: '1.1rem' }}>
+                            <h2 style={{ color: 'var(--danger)', marginBottom: '0.75rem', fontSize: '1.1rem' }}>
                                 Authorized Lab Simulation Mode
                             </h2>
                             <p style={{ color: '#8892a4', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
@@ -71,7 +71,7 @@ export default function ModeToggle() {
                                 <button
                                     onClick={confirmRed}
                                     style={{
-                                        flex: 1, padding: '0.6rem', background: '#ff3366', color: '#fff',
+                                        flex: 1, padding: '0.6rem', background: 'var(--danger)', color: '#fff',
                                         border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer',
                                         fontSize: '0.875rem'
                                     }}

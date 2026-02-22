@@ -4,7 +4,7 @@ import axios from 'axios'
 
 const pageVariants = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0, transition: { duration: 0.3 } } }
 
-const LEVEL_COLORS = { critical: '#ff3366', error: '#ff8800', warning: '#ffcc00', info: '#00d4ff', debug: '#4a5568' }
+const LEVEL_COLORS = { critical: 'var(--danger)', error: '#ff8800', warning: 'var(--warning)', info: 'var(--info)', debug: '#4a5568' }
 
 const SAMPLE_LOGS = [
     { source: 'syslog', message: 'Failed password for admin from 192.168.1.105 port 22 ssh2', ip: '192.168.1.105', user: 'admin', host: 'webserver-01' },
@@ -120,10 +120,10 @@ export default function LogViewer() {
                     {ingestResult && (
                         <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: 8, fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>
                             {ingestResult.error ? (
-                                <span style={{ color: '#ff3366' }}>Error: {ingestResult.error}</span>
+                                <span style={{ color: 'var(--danger)' }}>Error: {ingestResult.error}</span>
                             ) : (
                                 <>
-                                    <div>Threat Score: <span style={{ color: ingestResult.threat_score > 50 ? '#ff3366' : '#00ff88' }}>{ingestResult.threat_score}/100</span></div>
+                                    <div>Threat Score: <span style={{ color: ingestResult.threat_score > 50 ? 'var(--danger)' : 'var(--success)' }}>{ingestResult.threat_score}/100</span></div>
                                     <div>Flags: {ingestResult.flags?.join(', ') || 'None'}</div>
                                     {ingestResult.incident && <div style={{ color: '#ff8800' }}>⚠️ Incident created: {ingestResult.incident.title}</div>}
                                 </>
@@ -177,7 +177,7 @@ export default function LogViewer() {
                         <div key={log._id || i} className="log-line">
                             <span className="log-ts">{new Date(log.timestamp).toLocaleTimeString()}</span>
                             <span className="log-lvl" style={{ color: LEVEL_COLORS[log.level] || '#4a5568', fontWeight: 700 }}>[{log.level?.toUpperCase()}]</span>
-                            {log.threat_score > 0 && <span style={{ color: log.threat_score > 50 ? '#ff3366' : '#ff8800', fontSize: '0.75rem' }}>{log.threat_score}</span>}
+                            {log.threat_score > 0 && <span style={{ color: log.threat_score > 50 ? 'var(--danger)' : '#ff8800', fontSize: '0.75rem' }}>{log.threat_score}</span>}
                             <span className="log-msg">{log.message}</span>
                         </div>
                     ))}

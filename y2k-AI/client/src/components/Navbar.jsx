@@ -49,8 +49,8 @@ export default function Navbar() {
         return () => clearInterval(interval)
     }, [])
 
-    const allOk = status?.services?.python_api === 'operational'
-    const accent = isRed ? '#ff3366' : '#00d4ff'
+    const allOk = status?.services?.backend === 'operational'
+    const accent = 'var(--info)' // Locked color regardless of mode
 
     return (
         <header style={{
@@ -58,7 +58,7 @@ export default function Navbar() {
             height: 'var(--navbar-height)',
             background: 'rgba(8, 12, 24, 0.9)',
             backdropFilter: 'blur(12px)',
-            borderBottom: `1px solid ${isRed ? 'rgba(255,51,102,0.2)' : 'var(--border)'}`,
+            borderBottom: '1px solid var(--border)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '0 2rem', zIndex: 99,
             transition: 'border-color 0.3s'
@@ -115,11 +115,38 @@ export default function Navbar() {
 
                 {/* System status */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem' }}>
-                    <div style={{
-                        width: 8, height: 8, borderRadius: '50%',
-                        background: allOk ? 'var(--green)' : 'var(--red)',
-                        boxShadow: allOk ? '0 0 8px var(--green)' : '0 0 8px var(--red)'
-                    }} />
+                    {allOk ? (
+                        <div className="loader" style={{
+                            '--cloud-color': 'var(--green)',
+                            '--arrows-color': '#aaffaa',
+                            '--time-animation': '2s',
+                            transform: 'scale(0.18)',
+                            margin: '-20px'
+                        }}>
+                            <svg viewBox="0 0 100 100" id="cloud">
+                                <g id="shapes">
+                                    <g>
+                                        <circle r="15" cy="60" cx="20"></circle>
+                                        <circle r="20" cy="45" cx="50"></circle>
+                                        <circle r="15" cy="60" cx="80"></circle>
+                                    </g>
+                                </g>
+                                <g>
+                                    <rect height="30" width="60" y="45" x="20"></rect>
+                                </g>
+                                <g>
+                                    <path d="M 50 10 A 40 40 0 1 1 10 50 L 20 50 A 30 30 0 1 0 50 20 Z" />
+                                    <polygon points="50,0 65,15 35,15" />
+                                </g>
+                            </svg>
+                        </div>
+                    ) : (
+                        <div style={{
+                            width: 8, height: 8, borderRadius: '50%',
+                            background: 'var(--red)',
+                            boxShadow: '0 0 8px var(--red)'
+                        }} />
+                    )}
                     <span style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
                         {allOk ? 'Online' : 'Offline'}
                     </span>

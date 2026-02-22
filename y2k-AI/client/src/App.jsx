@@ -12,6 +12,9 @@ import ReportDetail from './pages/ReportDetail'
 import BatchScanner from './pages/BatchScanner'
 import Monitor from './pages/Monitor'
 import Settings from './pages/Settings'
+import GRC from './pages/GRC'
+import ITInfrastructure from './pages/ITInfrastructure'
+import BankingSecurity from './pages/BankingSecurity'
 
 // 🔵 Blue Mode pages
 import ThreatDashboard from './pages/blue/ThreatDashboard'
@@ -19,6 +22,7 @@ import LogViewer from './pages/blue/LogViewer'
 import IncidentManager from './pages/blue/IncidentManager'
 import SOCAssistant from './pages/blue/SOCAssistant'
 import Sandbox from './pages/Sandbox'
+import VMTerminal from './pages/VMTerminal'
 
 // 🔴 Red Mode pages
 import ReconDashboard from './pages/red/ReconDashboard'
@@ -40,6 +44,7 @@ import MemoryForensics from './pages/MemoryForensics'
 import DigitalTwin from './pages/DigitalTwin'
 import AttackPrediction from './pages/AttackPrediction'
 import CyberBattlefield from './pages/CyberBattlefield'
+import ForensicLab from './pages/ForensicLab'
 
 // 🎮 Training + Advanced pages
 import CyberRange from './pages/CyberRange'
@@ -66,6 +71,9 @@ export default function App() {
                             <Route path="/reports/:id" element={<ReportDetail />} />
                             <Route path="/monitor" element={<Monitor />} />
                             <Route path="/settings" element={<Settings />} />
+                            <Route path="/grc" element={<GRC />} />
+                            <Route path="/banking" element={<BankingSecurity />} />
+                            <Route path="/infrastructure" element={<ITInfrastructure />} />
 
                             {/* 🔵 Blue Mode */}
                             <Route path="/blue/dashboard" element={<ThreatDashboard />} />
@@ -73,6 +81,7 @@ export default function App() {
                             <Route path="/blue/incidents" element={<IncidentManager />} />
                             <Route path="/blue/assistant" element={<SOCAssistant />} />
                             <Route path="/sandbox" element={<Sandbox />} />
+                            <Route path="/vm-terminal" element={<VMTerminal />} />
 
                             {/* 🔴 Red Mode */}
                             <Route path="/red/recon" element={<ReconDashboard />} />
@@ -94,6 +103,7 @@ export default function App() {
                             <Route path="/digital-twin" element={<DigitalTwin />} />
                             <Route path="/attack-prediction" element={<AttackPrediction />} />
                             <Route path="/battlefield" element={<CyberBattlefield />} />
+                            <Route path="/forensics" element={<ForensicLab />} />
 
                             {/* 🎮 Training + Advanced */}
                             <Route path="/cyber-range" element={<CyberRange />} />

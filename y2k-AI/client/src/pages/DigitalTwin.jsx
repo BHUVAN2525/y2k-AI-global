@@ -12,22 +12,31 @@ export default function DigitalTwin() {
     const [error, setError] = useState('')
 
     useEffect(() => {
-        // load infrastructure from backend
-        axios.get('/api/digital-twin')
-            .then(r => setInfra(r.data.infrastructure || []))
-            .catch(() => setError('Unable to load infrastructure data'))
+        const loadInfra = async () => {
+            try {
+                const r = await axios.get('/api/digital-twin');
+                setInfra(r.data.infrastructure || []);
+            } catch (err) {
+                setError('Unable to load infrastructure data');
+            }
+        };
+        loadInfra();
+
+        // Simulate live telemetry refresh every 5s
+        const interval = setInterval(loadInfra, 5000);
+        return () => clearInterval(interval);
     }, [])
 
     const runSimulation = async () => {
-        // placeholder – backend simulation not yet implemented
-        setSimulationRunning(true)
-        setTimeout(() => setSimulationRunning(false), 2000)
+        setSimulationRunning(true);
+        // POST to a simulation endpoint could be added here later
+        setTimeout(() => setSimulationRunning(false), 2000);
     }
 
     const getStatusColor = (status) => {
-        if (status === 'critical') return '#ff4757'
-        if (status === 'warning') return '#ffa502'
-        return '#2ed573'
+        if (status === 'critical') return 'var(--danger)'
+        if (status === 'warning') return 'var(--warning)'
+        return 'var(--success)'
     }
 
     const getTypeIcon = (type) => {
@@ -50,21 +59,21 @@ export default function DigitalTwin() {
                             {simulationRunning ? '⏳ Simulating...' : '⚔️ Run Attack Simulation'}
                         </button>
                     </div>
-                {error && <div style={{ color: '#ff3366', marginTop: '0.5rem', fontSize: '0.85rem' }}>{error}</div>}
+                    {error && <div style={{ color: 'var(--danger)', marginTop: '0.5rem', fontSize: '0.85rem' }}>{error}</div>}
                 </div>
 
                 {/* Overall Health */}
                 <div className="dt-health-bar">
                     <div className="dt-health-label">
                         <span>Overall Infrastructure Risk</span>
-                        <strong style={{ color: overallRisk > 50 ? '#ff4757' : overallRisk > 30 ? '#ffa502' : '#2ed573' }}>
+                        <strong style={{ color: overallRisk > 50 ? 'var(--danger)' : overallRisk > 30 ? 'var(--warning)' : 'var(--success)' }}>
                             {overallRisk}%
                         </strong>
                     </div>
                     <div className="dt-health-track">
                         <motion.div className="dt-health-fill"
                             animate={{ width: `${overallRisk}%` }}
-                            style={{ background: overallRisk > 50 ? '#ff4757' : overallRisk > 30 ? '#ffa502' : '#2ed573' }}
+                            style={{ background: overallRisk > 50 ? 'var(--danger)' : overallRisk > 30 ? 'var(--warning)' : 'var(--success)' }}
                         />
                     </div>
                 </div>
@@ -73,47 +82,47 @@ export default function DigitalTwin() {
                 {infra.length ? (
                     <div className="dt-grid">
                         {infra.map((node, i) => (
-                        <motion.div key={node.id}
-                            className={`dt-node ${node.status} ${selectedNode === node.id ? 'selected' : ''}`}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.05 }}
-                            onClick={() => setSelectedNode(selectedNode === node.id ? null : node.id)}
-                            whileHover={{ scale: 1.02 }}
-                        >
-                            <div className="dt-node-top">
-                                <span className="dt-node-icon">{getTypeIcon(node.type)}</span>
-                                <span className="dt-status-dot" style={{ background: getStatusColor(node.status) }} />
-                            </div>
-                            <h4>{node.name}</h4>
-                            <span className="dt-node-ip">{node.ip}</span>
-                            <div className="dt-node-metrics">
-                                <div className="dt-metric">
-                                    <span>CPU</span>
-                                    <div className="dt-metric-bar">
-                                        <motion.div className="dt-metric-fill" animate={{ width: `${node.cpu}%` }}
-                                            style={{ background: node.cpu > 80 ? '#ff4757' : node.cpu > 60 ? '#ffa502' : '#2ed573' }} />
-                                    </div>
-                                    <span>{Math.round(node.cpu)}%</span>
+                            <motion.div key={node.id}
+                                className={`dt-node ${node.status} ${selectedNode === node.id ? 'selected' : ''}`}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.05 }}
+                                onClick={() => setSelectedNode(selectedNode === node.id ? null : node.id)}
+                                whileHover={{ scale: 1.02 }}
+                            >
+                                <div className="dt-node-top">
+                                    <span className="dt-node-icon">{getTypeIcon(node.type)}</span>
+                                    <span className="dt-status-dot" style={{ background: getStatusColor(node.status) }} />
                                 </div>
-                                <div className="dt-metric">
-                                    <span>MEM</span>
-                                    <div className="dt-metric-bar">
-                                        <motion.div className="dt-metric-fill" animate={{ width: `${node.mem}%` }}
-                                            style={{ background: node.mem > 80 ? '#ff4757' : node.mem > 60 ? '#ffa502' : '#2ed573' }} />
+                                <h4>{node.name}</h4>
+                                <span className="dt-node-ip">{node.ip}</span>
+                                <div className="dt-node-metrics">
+                                    <div className="dt-metric">
+                                        <span>CPU</span>
+                                        <div className="dt-metric-bar">
+                                            <motion.div className="dt-metric-fill" animate={{ width: `${node.cpu}%` }}
+                                                style={{ background: node.cpu > 80 ? 'var(--danger)' : node.cpu > 60 ? 'var(--warning)' : 'var(--success)' }} />
+                                        </div>
+                                        <span>{Math.round(node.cpu)}%</span>
                                     </div>
-                                    <span>{Math.round(node.mem)}%</span>
+                                    <div className="dt-metric">
+                                        <span>MEM</span>
+                                        <div className="dt-metric-bar">
+                                            <motion.div className="dt-metric-fill" animate={{ width: `${node.mem}%` }}
+                                                style={{ background: node.mem > 80 ? 'var(--danger)' : node.mem > 60 ? 'var(--warning)' : 'var(--success)' }} />
+                                        </div>
+                                        <span>{Math.round(node.mem)}%</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="dt-node-footer">
-                                <span>🔌 {node.connections}</span>
-                                <span style={{ color: node.risk > 50 ? '#ff4757' : node.risk > 30 ? '#ffa502' : '#2ed573' }}>
-                                    Risk: {node.risk}%
-                                </span>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>) : (
+                                <div className="dt-node-footer">
+                                    <span>🔌 {node.connections}</span>
+                                    <span style={{ color: node.risk > 50 ? 'var(--danger)' : node.risk > 30 ? 'var(--warning)' : 'var(--success)' }}>
+                                        Risk: {node.risk}%
+                                    </span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>) : (
                     <div style={{ color: '#888', padding: '2rem', textAlign: 'center' }}>
                         {error ? error : 'No infrastructure data available. Configure the backend to provide real system status.'}
                     </div>
@@ -124,11 +133,11 @@ export default function DigitalTwin() {
             <style>{`
                 .dt-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
                 .dt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-                .dt-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .dt-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .dt-subtitle { color: #888; margin-top: 4px; }
                 .dt-header-actions { display: flex; gap: 8px; }
                 .dt-sim-btn {
-                    padding: 10px 22px; background: linear-gradient(135deg, #ff4757, #ff6b81);
+                    padding: 10px 22px; background: var(--bg-secondary), #ff6b81);
                     border: none; border-radius: 10px; color: #fff; font-weight: 700;
                     cursor: pointer; transition: all 0.3s;
                 }
@@ -138,7 +147,7 @@ export default function DigitalTwin() {
                     padding: 10px 18px; border: 1px solid rgba(255,255,255,0.15); background: transparent;
                     border-radius: 10px; color: #999; cursor: pointer; transition: all 0.2s;
                 }
-                .dt-toggle-btn.active { background: rgba(0,255,245,0.1); border-color: rgba(0,255,245,0.3); color: #00fff5; }
+                .dt-toggle-btn.active { background: rgba(0,255,245,0.1); border-color: rgba(0,255,245,0.3); color: var(--info); }
 
                 .dt-health-bar { margin-bottom: 24px; }
                 .dt-health-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
@@ -152,10 +161,10 @@ export default function DigitalTwin() {
                     border-radius: 14px; cursor: pointer; transition: all 0.3s;
                 }
                 .dt-node:hover { border-color: rgba(0,255,245,0.2); }
-                .dt-node.critical { border-left: 3px solid #ff4757; }
-                .dt-node.warning { border-left: 3px solid #ffa502; }
-                .dt-node.healthy { border-left: 3px solid #2ed573; }
-                .dt-node.selected { border-color: #00fff5; box-shadow: 0 0 15px rgba(0,255,245,0.15); }
+                .dt-node.critical { border-left: 3px solid var(--danger); }
+                .dt-node.warning { border-left: 3px solid var(--warning); }
+                .dt-node.healthy { border-left: 3px solid var(--success); }
+                .dt-node.selected { border-color: var(--info); box-shadow: 0 0 15px rgba(0,255,245,0.15); }
 
                 .dt-node-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
                 .dt-node-icon { font-size: 1.5rem; }
@@ -180,7 +189,7 @@ export default function DigitalTwin() {
                 .dt-path { padding: 14px; background: rgba(0,0,0,0.2); border-radius: 10px; margin-bottom: 8px; }
                 .dt-path-nodes { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
                 .dt-path-from, .dt-path-to { color: #ddd; font-weight: 600; font-size: 0.9rem; }
-                .dt-path-arrow { color: #ff4757; font-size: 1.2rem; }
+                .dt-path-arrow { color: var(--danger); font-size: 1.2rem; }
                 .dt-path-details { display: flex; justify-content: space-between; }
                 .dt-path-method { color: #888; font-size: 0.85rem; }
                 .dt-path-prob { font-weight: 700; font-size: 0.85rem; }

@@ -303,7 +303,12 @@ Respond in JSON: { immediate: [action], shortterm: [action], longterm: [action] 
 
             const response = await axios.post(
                 `${this.apiBase}:generateContent?key=${this.geminiKey}`,
-                { contents },
+                {
+                    contents,
+                    systemInstruction: {
+                        parts: [{ text: 'You are a malware analysis assistant. Use only the data provided and do not hallucinate behaviors or IOCs. If you cannot determine an answer, return null or empty arrays. Output must follow requested JSON schemas.' }]
+                    }
+                },
                 { timeout: 30000 }
             );
 

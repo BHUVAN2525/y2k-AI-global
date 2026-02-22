@@ -27,14 +27,14 @@ taskkill /F /IM node.exe >nul 2>&1
 timeout /t 2 /nobreak
 
 echo.
-echo 📊 Step 1/3: Starting Backend Server (port 5000)
+echo 📊 Step 1/2: Starting Node.js Backend Server (port 5000)
 echo ────────────────────────────────────────────────────────────────
 cd /d "%~dp0server"
 start "Y2K Backend" cmd /k "call npm start"
 timeout /t 5 /nobreak
 
 echo.
-echo 🎨 Step 2/3: Starting Frontend Dev Server (port 5173)
+echo 🎨 Step 2/2: Starting React Frontend Dev Server (port 5173)
 echo ────────────────────────────────────────────────────────────────
 cd /d "%~dp0client"
 start "Y2K Frontend" cmd /k "call npm run dev"
@@ -45,8 +45,8 @@ echo ╔════════════════════════
 echo ║                   ✅ SYSTEM STARTED                              ║
 echo ╚════════════════════════════════════════════════════════════════╝
 echo.
-echo 📊 Backend:   http://localhost:5000
-echo 🎨 Frontend:  http://localhost:5173
+echo 📊 Backend (Node/Express/MongoDB): http://localhost:5000
+echo 🎨 Frontend (React/Vite):         http://localhost:5173
 echo.
 echo 🚀 QUICK START:
 echo    1. Open browser: http://localhost:5173

@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+import RefreshButton from '../components/RefreshButton'
 
 const PREDICTION_CATEGORIES = [
-    { id: 'ddos', label: 'DDoS Attack', icon: '🌊', color: '#ff4757' },
-    { id: 'brute_force', label: 'Brute Force', icon: '🔓', color: '#ffa502' },
-    { id: 'ransomware', label: 'Ransomware', icon: '💀', color: '#ff4757' },
-    { id: 'phishing', label: 'Phishing Campaign', icon: '🎣', color: '#ffa502' },
+    { id: 'ddos', label: 'DDoS Attack', icon: '🌊', color: 'var(--danger)' },
+    { id: 'brute_force', label: 'Brute Force', icon: '🔓', color: 'var(--warning)' },
+    { id: 'ransomware', label: 'Ransomware', icon: '💀', color: 'var(--danger)' },
+    { id: 'phishing', label: 'Phishing Campaign', icon: '🎣', color: 'var(--warning)' },
     { id: 'data_exfil', label: 'Data Exfiltration', icon: '📤', color: '#e84393' },
-    { id: 'supply_chain', label: 'Supply Chain', icon: '🔗', color: '#b388ff' },
+    { id: 'supply_chain', label: 'Supply Chain', icon: '🔗', color: 'var(--primary)' },
 ]
 
 function generatePredictions() {
@@ -71,7 +72,7 @@ export default function AttackPrediction() {
         timeline.forEach((t, i) => {
             const x = i * (barW + 2) + 1
             const barH = (t.threat_level / 100) * (h - 20)
-            const color = t.threat_level > 70 ? '#ff4757' : t.threat_level > 40 ? '#ffa502' : '#2ed573'
+            const color = t.threat_level > 70 ? 'var(--danger)' : t.threat_level > 40 ? 'var(--warning)' : 'var(--success)'
 
             ctx.fillStyle = color + '40'
             ctx.fillRect(x, h - 10 - barH, barW, barH)
@@ -96,9 +97,7 @@ export default function AttackPrediction() {
                         <h1>🔮 Attack Prediction Engine</h1>
                         <p className="ap-subtitle">AI-powered threat forecasting for the next 48 hours</p>
                     </div>
-                    <button className="ap-refresh-btn" onClick={refreshPredictions} disabled={loading}>
-                        {loading ? '⏳ Recalculating...' : '🔄 Refresh Predictions'}
-                    </button>
+                    <RefreshButton loading={loading} onClick={refreshPredictions} title="Refresh Predictions" />
                 </div>
 
                 {/* Threat Level */}
@@ -107,7 +106,7 @@ export default function AttackPrediction() {
                         <svg viewBox="0 0 120 60" width="160" height="80">
                             <path d="M10,55 A50,50 0 0,1 110,55" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" strokeLinecap="round" />
                             <path d="M10,55 A50,50 0 0,1 110,55" fill="none"
-                                stroke={overallThreat > 60 ? '#ff4757' : overallThreat > 35 ? '#ffa502' : '#2ed573'}
+                                stroke={overallThreat > 60 ? 'var(--danger)' : overallThreat > 35 ? 'var(--warning)' : 'var(--success)'}
                                 strokeWidth="10" strokeLinecap="round"
                                 strokeDasharray={`${overallThreat * 1.57} 157`}
                             />
@@ -142,7 +141,7 @@ export default function AttackPrediction() {
                         >
                             <div className="ap-pred-top">
                                 <span className="ap-pred-icon">{p.icon}</span>
-                                <span className="ap-trend" style={{ color: p.trend === 'increasing' ? '#ff4757' : '#2ed573' }}>
+                                <span className="ap-trend" style={{ color: p.trend === 'increasing' ? 'var(--danger)' : 'var(--success)' }}>
                                     {p.trend === 'increasing' ? '📈' : '➡️'} {p.trend}
                                 </span>
                             </div>
@@ -178,15 +177,8 @@ export default function AttackPrediction() {
             <style>{`
                 .ap-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
                 .ap-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-                .ap-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .ap-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .ap-subtitle { color: #888; margin-top: 4px; }
-                .ap-refresh-btn {
-                    padding: 10px 22px; background: linear-gradient(135deg, #b388ff, #7c4dff);
-                    border: none; border-radius: 10px; color: #fff; font-weight: 700;
-                    cursor: pointer; transition: all 0.3s;
-                }
-                .ap-refresh-btn:hover { box-shadow: 0 4px 20px rgba(124,77,255,0.3); }
-                .ap-refresh-btn:disabled { opacity: 0.5; }
 
                 .ap-threat-overview {
                     display: flex; align-items: center; gap: 24px; padding: 24px;

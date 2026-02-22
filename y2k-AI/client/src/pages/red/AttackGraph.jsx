@@ -24,13 +24,13 @@ function AttackGraphSVG({ nodes, edges }) {
 
     const nodeMap = Object.fromEntries(positioned.map(n => [n.id, n]))
 
-    const TYPE_COLORS = { entry: '#00d4ff', pivot: '#ff8800', target: '#ff3366', exfil: '#9b59b6' }
+    const TYPE_COLORS = { entry: 'var(--info)', pivot: '#ff8800', target: 'var(--danger)', exfil: 'var(--primary)' }
 
     return (
         <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ fontFamily: 'var(--font-mono)' }}>
             <defs>
                 <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                    <path d="M0,0 L0,6 L8,3 z" fill="#ff3366" />
+                    <path d="M0,0 L0,6 L8,3 z" fill="var(--danger)" />
                 </marker>
                 {Object.entries(TYPE_COLORS).map(([t, c]) => (
                     <radialGradient key={t} id={`grad-${t}`} cx="50%" cy="50%" r="50%">
@@ -45,7 +45,7 @@ function AttackGraphSVG({ nodes, edges }) {
                 const from = nodeMap[e.from], to = nodeMap[e.to]
                 if (!from || !to) return null
                 const prob = e.success_probability || 0
-                const color = prob >= 0.7 ? '#ff3366' : prob >= 0.4 ? '#ff8800' : '#ffcc00'
+                const color = prob >= 0.7 ? 'var(--danger)' : prob >= 0.4 ? '#ff8800' : 'var(--warning)'
                 return (
                     <g key={i}>
                         <line x1={from.x} y1={from.y} x2={to.x} y2={to.y}
@@ -108,7 +108,7 @@ export default function AttackGraph() {
         setGenerating(false)
     }
 
-    const RISK_COLOR = { critical: '#ff3366', high: '#ff8800', medium: '#ffcc00', low: '#00ff88' }
+    const RISK_COLOR = { critical: 'var(--danger)', high: '#ff8800', medium: 'var(--warning)', low: 'var(--success)' }
 
     return (
         <motion.div className="page-container" variants={pageVariants} initial="initial" animate="animate">
@@ -158,11 +158,11 @@ export default function AttackGraph() {
                         </div>
                         <div className="stat-card">
                             <div className="stat-label">Estimated Time</div>
-                            <div className="stat-value" style={{ color: '#ffcc00', fontSize: '1.2rem' }}>{attackPath.estimated_time}</div>
+                            <div className="stat-value" style={{ color: 'var(--warning)', fontSize: '1.2rem' }}>{attackPath.estimated_time}</div>
                         </div>
                         <div className="stat-card">
                             <div className="stat-label">Attack Nodes</div>
-                            <div className="stat-value" style={{ color: '#9b59b6', fontSize: '1.5rem' }}>{attackPath.nodes?.length}</div>
+                            <div className="stat-value" style={{ color: 'var(--primary)', fontSize: '1.5rem' }}>{attackPath.nodes?.length}</div>
                         </div>
                     </div>
 
@@ -171,7 +171,7 @@ export default function AttackGraph() {
                         <div className="section-title">🕸️ Attack Graph Visualization</div>
                         <AttackGraphSVG nodes={attackPath.nodes} edges={attackPath.edges} />
                         <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-                            {[['entry', '#00d4ff', 'Entry Point'], ['pivot', '#ff8800', 'Pivot Node'], ['target', '#ff3366', 'Target'], ['exfil', '#9b59b6', 'Exfiltration']].map(([t, c, l]) => (
+                            {[['entry', 'var(--info)', 'Entry Point'], ['pivot', '#ff8800', 'Pivot Node'], ['target', 'var(--danger)', 'Target'], ['exfil', 'var(--primary)', 'Exfiltration']].map(([t, c, l]) => (
                                 <div key={t} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                                     <div style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
                                     {l}
@@ -185,15 +185,15 @@ export default function AttackGraph() {
                         <div className="section-title">⛓️ Attack Chain Steps</div>
                         {attackPath.attack_chain?.map((step, i) => (
                             <div key={i} style={{ display: 'flex', gap: '1rem', padding: '0.75rem 0', borderBottom: '1px solid var(--border)', alignItems: 'flex-start' }}>
-                                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,51,102,0.15)', border: '1px solid rgba(255,51,102,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, color: '#ff3366', flexShrink: 0 }}>{step.step}</div>
+                                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,51,102,0.15)', border: '1px solid rgba(255,51,102,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, color: 'var(--danger)', flexShrink: 0 }}>{step.step}</div>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{step.action}</div>
                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                        <span style={{ color: '#9b59b6', fontFamily: 'var(--font-mono)' }}>{step.mitre_id}</span> — {step.technique}
+                                        <span style={{ color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>{step.mitre_id}</span> — {step.technique}
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                    <div style={{ fontSize: '0.8rem', color: step.success_probability >= 0.7 ? '#ff3366' : '#ff8800', fontFamily: 'var(--font-mono)' }}>
+                                    <div style={{ fontSize: '0.8rem', color: step.success_probability >= 0.7 ? 'var(--danger)' : '#ff8800', fontFamily: 'var(--font-mono)' }}>
                                         {(step.success_probability * 100).toFixed(0)}% success
                                     </div>
                                 </div>

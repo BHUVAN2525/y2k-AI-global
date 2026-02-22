@@ -64,16 +64,29 @@ class AutonomousBlueAgent {
 
             // Phase 3: Containment & Incident Response
             if (incidents.length > 0) {
-                console.log(`[${this.agentId}] Phase 3: Incident Response`);
+                console.log(`[${this.agentId}] Phase 3: Incident Response & Forensics`);
                 const incidents_map = {};
                 for (const incident of incidents) {
                     const containment = await this.containIncident(incident);
+
+                    // Trigger Forensic Sandbox if malware detected
+                    let forensicInvestigation = null;
+                    if (incident.title.toLowerCase().includes('malware') || incident.description.toLowerCase().includes('file')) {
+                        forensicInvestigation = {
+                            action: 'trigger_sandbox_analysis',
+                            target: incident.affected_systems?.[0] || 'unknown_target',
+                            priority: 'immediate'
+                        };
+                    }
+
                     incidents_map[incident.id] = {
                         incident,
                         containment,
+                        forensicInvestigation,
                         status: 'contained'
                     };
                     workflow.artifacts.push(containment);
+                    if (forensicInvestigation) workflow.artifacts.push(forensicInvestigation);
                 }
                 workflow.incidents = incidents_map;
             }
@@ -339,7 +352,7 @@ Provide in JSON format with priority and timeline.`;
                         parts: [{ text: msg.content }]
                     })),
                     systemInstruction: {
-                        parts: [{ text: 'You are an autonomous Blue Team SOC agent. Provide structured JSON responses.' }]
+                        parts: [{ text: 'You are an autonomous Blue Team SOC agent. Use only facts provided in the prompt, do NOT invent details or hallucinate. When uncertain, reply with "unknown" or empty values. Always provide structured JSON responses.' }]
                     },
                     generationConfig: {
                         temperature: 0.7,
@@ -380,7 +393,7 @@ Provide in JSON format with priority and timeline.`;
             if (match) {
                 return JSON.parse(match[0]);
             }
-        } catch (e) {}
+        } catch (e) { }
         return fallback;
     }
 

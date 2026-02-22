@@ -156,11 +156,18 @@ class Y2KAgentCore {
      * @param {string} sessionId - Active sandbox session ID (optional)
      * @param {Array} history - Previous messages [{role, content}]
      */
-    async think(message, mode = 'blue', sessionId = null, history = []) {
+    async think(message, mode = 'blue', sessionId = null, history = [], callbacks = {}) {
         const systemPrompt = mode === 'red' ? RED_SYSTEM_PROMPT : BLUE_SYSTEM_PROMPT;
         const tools = toolExecutor.TOOL_DEFINITIONS[mode] || [];
-        const steps = [{ type: 'thinking', message: `Y2K ${mode.toUpperCase()} Agent analyzing: "${message.slice(0, 60)}..."` }];
+        const steps = [];
         const toolsUsed = [];
+
+        const pushStep = (step) => {
+            steps.push(step);
+            callbacks.onStep?.(step);
+        };
+
+        pushStep({ type: 'thinking', message: `Y2K ${mode.toUpperCase()} Agent analyzing: "${message.slice(0, 60)}..."` });
 
         try {
             // Build message history for Gemini
@@ -176,7 +183,7 @@ class Y2KAgentCore {
             } catch (err) {
                 if (err.message === 'NO_GEMINI_KEY') {
                     // Graceful fallback to heuristics
-                    steps.push({ type: 'info', message: 'No Gemini key — using built-in intelligence' });
+                    pushStep({ type: 'info', message: 'No Gemini key — using built-in intelligence' });
                     const response = mode === 'red' ? heuristicRed(message) : heuristicBlue(message);
                     return { response, steps, intent: 'heuristic', toolsUsed: [], mode, educational_note: null };
                 }
@@ -189,11 +196,13 @@ class Y2KAgentCore {
 
             if (geminiResponse.toolCalls?.length > 0) {
                 for (const tc of geminiResponse.toolCalls) {
-                    steps.push({ type: 'tool_call', message: `Calling ${tc.name}(${JSON.stringify(tc.args).slice(0, 80)})` });
+                    pushStep({ type: 'tool_call', message: `Calling ${tc.name}(${JSON.stringify(tc.args).slice(0, 80)})` });
                     const result = await toolExecutor.run(tc.name, tc.args, mode, sessionId);
-                    toolsUsed.push({ tool: tc.name, args: tc.args, result });
+                    const toolObj = { tool: tc.name, args: tc.args, result };
+                    toolsUsed.push(toolObj);
                     toolResults.push({ name: tc.name, result });
-                    steps.push({ type: 'tool_result', message: `${tc.name} → ${result.error ? 'Error: ' + result.error : 'Success'}` });
+                    callbacks.onTool?.(toolObj);
+                    pushStep({ type: 'tool_result', message: `${tc.name} → ${result.error ? 'Error: ' + result.error : 'Success'}` });
                 }
 
                 // Feed tool results back to Gemini for final synthesis
@@ -215,7 +224,7 @@ class Y2KAgentCore {
                 }
             }
 
-            steps.push({ type: 'synthesizing', message: 'Generating final response...' });
+            pushStep({ type: 'synthesizing', message: 'Generating final response...' });
 
             return {
                 response: finalText || (mode === 'red' ? heuristicRed(message) : heuristicBlue(message)),

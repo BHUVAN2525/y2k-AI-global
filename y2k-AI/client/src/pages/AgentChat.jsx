@@ -16,7 +16,7 @@ const MODE_CONFIG = {
         name: 'Blue Defender Agent',
         icon: '🛡️',
         color: 'var(--cyan)',
-        gradient: 'linear-gradient(135deg,#00d4ff,#0066cc)',
+        gradient: 'var(--bg-secondary),#0066cc)',
         glow: 'rgba(0,212,255,0.2)',
         badge: 'SOC DEFENDER',
         greeting: `🛡️ **Y2K Blue Agent — SOC Defender & Trainer**
@@ -43,8 +43,8 @@ I'm your AI-powered SOC analyst and cybersecurity instructor. I combine real-tim
     red: {
         name: 'Red Planner Agent',
         icon: '⚔️',
-        color: '#ff3366',
-        gradient: 'linear-gradient(135deg,#ff3366,#cc0033)',
+        color: 'var(--danger)',
+        gradient: 'var(--bg-secondary),#cc0033)',
         glow: 'rgba(255,51,102,0.2)',
         badge: 'LAB SIMULATION ONLY',
         greeting: `⚔️ **Y2K Red Agent — Offensive Simulator & Instructor**
@@ -85,7 +85,7 @@ function ToolCard({ tool }) {
                 <span>{icon}</span>
                 <span style={{ fontWeight: 700 }}>{tool.tool}</span>
                 <span style={{ color: 'var(--text-muted)' }}>({Object.entries(tool.args || {}).map(([k, v]) => `${k}="${String(v).slice(0, 20)}"`).join(', ')})</span>
-                <span style={{ marginLeft: 'auto', color: tool.result?.error ? '#ff3366' : '#00ff88' }}>
+                <span style={{ marginLeft: 'auto', color: tool.result?.error ? 'var(--danger)' : 'var(--success)' }}>
                     {tool.result?.error ? '✗ Error' : '✓ Done'}
                 </span>
                 <span style={{ color: 'var(--text-muted)' }}>{expanded ? '▲' : '▼'}</span>
@@ -328,7 +328,7 @@ export default function AgentChat() {
                         <div style={{ fontWeight: 700, fontSize: '1rem' }}>{cfg.name}</div>
                         <div style={{ fontSize: '0.72rem', color: cfg.color, fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
                             ● {cfg.badge}
-                            {sandboxSessionId && <span style={{ marginLeft: '0.75rem', color: '#00ff88' }}>🧪 VM Connected</span>}
+                            {sandboxSessionId && <span style={{ marginLeft: '0.75rem', color: 'var(--success)' }}>🧪 VM Connected</span>}
                         </div>
                     </div>
                 </div>

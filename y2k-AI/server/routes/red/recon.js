@@ -12,7 +12,7 @@ const ReconResult = require('../../models/ReconResult');
 const connectDB = require('../../config/db');
 const { broadcast } = require('../../services/ws');
 
-// fallbacks if database unavailable
+// local cache if database unavailable (scans still execute normally)
 const inMemoryRecons = [];
 
 // Common ports to scan (fast scan set)
@@ -151,7 +151,7 @@ router.get('/recon/:id', async (req, res) => {
 router.get('/recon', async (req, res) => {
     if (!connectDB.isConnected()) {
         // return latest in-memory scans (reverse chronological)
-        return res.json({ results: inMemoryRecons.slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,20) });
+        return res.json({ results: inMemoryRecons.slice().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 20) });
     }
     try {
         const results = await ReconResult.find().sort({ timestamp: -1 }).limit(20);
@@ -196,7 +196,39 @@ router.post('/subdomain', async (req, res) => {
     }
 });
 
-// helper for external users (cve route)
-router.getInMemory = (id) => inMemoryRecons.find(r => r._id === id);
+const attackSim = require('../../services/attackSimulation');
+
+// POST /api/red/attack-model — generate attack path graph
+router.post('/attack-model', async (req, res) => {
+    try {
+        const { target_info } = req.body;
+        const model = await attackSim.generateAttackModel(target_info || {});
+        res.json(model);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/red/simulate/brute-force
+router.post('/simulate/brute-force', async (req, res) => {
+    try {
+        const { target } = req.body;
+        const sim = await attackSim.simulateBruteForce(target);
+        res.json(sim);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/red/simulate/exfil
+router.post('/simulate/exfil', async (req, res) => {
+    try {
+        const { target } = req.body;
+        const sim = await attackSim.simulateExfiltration(target);
+        res.json(sim);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 module.exports = router;

@@ -104,10 +104,12 @@ class SupervisorAgent {
         // Always include the mode-specific core agent as fallback
         candidates.push({ agent: agentCore, relevance: 0.5, agentMode: mode });
 
-        // Check each specialist agent
-        for (const agent of this.swarm) {
-            if (agent.canHandle(message)) {
-                candidates.push({ agent, relevance: 0.8, agentMode: 'blue' });
+        // Check each specialist agent — only activate in Blue mode!
+        if (mode === 'blue') {
+            for (const agent of this.swarm) {
+                if (agent.canHandle(message)) {
+                    candidates.push({ agent, relevance: 0.8, agentMode: 'blue' });
+                }
             }
         }
 
@@ -178,14 +180,38 @@ class SupervisorAgent {
             return { blocked: true, violations };
         }
 
-        // For streaming, check if a specialist should handle it
         const candidates = this.classifyMessage(message, mode);
         const primary = candidates[0];
 
-        logAudit(mode, 'stream_route', `Routed stream to: ${primary.agent.name} | "${message.slice(0, 80)}"`, 'info');
+        logAudit(mode, 'stream_route', `Handling via robust route: ${primary.agent.name} | "${message.slice(0, 80)}"`, 'info');
 
-        // Specialists don't stream yet — fall back to core for streaming
-        return agentCore.thinkStream(message, mode, sessionId, history, callbacks);
+        // To support Tools in streaming endpoints without breaking the SSE protocol,
+        // we intercept the full route execution (which supports step callbacks)
+        // and then simulate streaming the final synthesized text.
+
+        let result;
+        if (primary.agent === agentCore) {
+            result = await agentCore.think(message, mode, sessionId, history, callbacks);
+        } else {
+            result = await primary.agent.think(message, sessionId, history, callbacks);
+        }
+
+        // Simulate streaming the final text output chunk-by-chunk for the UI
+        if (result.response) {
+            const words = result.response.split(' ');
+            for (let i = 0; i < words.length; i++) {
+                callbacks.onChunk?.(words[i] + (i === words.length - 1 ? '' : ' '));
+                await new Promise(r => setTimeout(r, 15)); // typing effect
+            }
+        }
+
+        result.swarm = {
+            routing_agent: primary.agent.name,
+            candidates: candidates.map(c => ({ agent: c.agent.name, relevance: c.relevance })),
+            supervisor_version: this.version
+        };
+
+        return result;
     }
 
     /**

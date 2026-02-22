@@ -509,7 +509,7 @@ Return JSON structure.`;
                     })),
                     systemInstruction: {
                         parts: [{
-                            text: 'You are an autonomous Red Team agent for authorized lab simulations only. Provide structured JSON responses. Never target real production systems.'
+                            text: 'You are an autonomous Red Team agent for authorized lab simulations only. Use only the facts you are given, avoid inventing or fabricating details. If you do not know, respond with "unknown" or leave fields blank. Provide structured JSON responses and never target real production systems.'
                         }]
                     },
                     generationConfig: {

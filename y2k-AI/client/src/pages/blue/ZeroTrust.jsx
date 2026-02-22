@@ -61,9 +61,9 @@ export default function ZeroTrust() {
     }
 
     const getStatusColor = (status) => {
-        if (status === 'pass') return '#2ed573'
-        if (status === 'partial') return '#ffa502'
-        return '#ff4757'
+        if (status === 'pass') return 'var(--success)'
+        if (status === 'partial') return 'var(--warning)'
+        return 'var(--danger)'
     }
 
     return (
@@ -83,10 +83,10 @@ export default function ZeroTrust() {
                 {totalScore !== null && (
                     <motion.div className="zt-score-card" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                         <div className="zt-score-circle" style={{
-                            borderColor: totalScore >= 80 ? '#2ed573' : totalScore >= 60 ? '#ffa502' : '#ff4757'
+                            borderColor: totalScore >= 80 ? 'var(--success)' : totalScore >= 60 ? 'var(--warning)' : 'var(--danger)'
                         }}>
                             <span className="zt-score-value" style={{
-                                color: totalScore >= 80 ? '#2ed573' : totalScore >= 60 ? '#ffa502' : '#ff4757'
+                                color: totalScore >= 80 ? 'var(--success)' : totalScore >= 60 ? 'var(--warning)' : 'var(--danger)'
                             }}>{totalScore}</span>
                             <span className="zt-score-label">/ 100</span>
                         </div>
@@ -127,7 +127,7 @@ export default function ZeroTrust() {
                                         {result.findings.map((f, j) => (
                                             <div key={j} className="zt-finding-item">
                                                 <span>{getStatusIcon(f.status)}</span>
-                                                <span style={{ color: f.status === 'pass' ? '#ccc' : '#ff4757' }}>{f.name}</span>
+                                                <span style={{ color: f.status === 'pass' ? '#ccc' : 'var(--danger)' }}>{f.name}</span>
                                             </div>
                                         ))}
                                     </motion.div>
@@ -166,11 +166,11 @@ export default function ZeroTrust() {
             <style>{`
                 .zt-page { max-width: 1100px; margin: 0 auto; padding: 24px; }
                 .zt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
-                .zt-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .zt-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .zt-subtitle { color: #888; margin-top: 4px; }
 
                 .zt-scan-btn {
-                    padding: 12px 28px; background: linear-gradient(135deg, #00fff5, #7c4dff);
+                    padding: 12px 28px; background: var(--bg-secondary), var(--primary));
                     border: none; border-radius: 10px; color: #000; font-weight: 700;
                     font-size: 0.95rem; cursor: pointer; transition: all 0.3s; white-space: nowrap;
                 }
@@ -222,7 +222,7 @@ export default function ZeroTrust() {
                 }
                 .zt-scan-pulse::after {
                     content: ''; position: absolute; left: -30%; top: 0; width: 30%; height: 100%;
-                    background: linear-gradient(90deg, transparent, #00fff5, transparent);
+                    background: var(--bg-secondary), transparent);
                     animation: zt-scan 1.5s linear infinite;
                 }
                 @keyframes zt-scan { to { left: 130%; } }
@@ -235,7 +235,7 @@ export default function ZeroTrust() {
                 .zt-rec-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
                 .zt-rec-icon { font-size: 1.3rem; }
                 .zt-rec-item strong { color: #ddd; }
-                .zt-rec-item p { margin: 4px 0 0; font-size: 0.85rem; color: #ff4757; }
+                .zt-rec-item p { margin: 4px 0 0; font-size: 0.85rem; color: var(--danger); }
             `}</style>
         </div>
     )

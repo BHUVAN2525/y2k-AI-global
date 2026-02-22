@@ -44,10 +44,10 @@ export default function XAIPanel({ analysisResult, onClose }) {
 
     const getImpactColor = (impact) => {
         switch (impact) {
-            case 'malicious': return '#ff4757'
-            case 'suspicious': return '#ffa502'
+            case 'malicious': return 'var(--danger)'
+            case 'suspicious': return 'var(--warning)'
             case 'info': return '#3742fa'
-            case 'benign': return '#2ed573'
+            case 'benign': return 'var(--success)'
             default: return '#747d8c'
         }
     }
@@ -164,7 +164,7 @@ export default function XAIPanel({ analysisResult, onClose }) {
                 }
                 .xai-panel {
                     width: 520px; max-width: 90vw; height: 100vh; overflow-y: auto;
-                    background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+                    background: var(--bg-secondary);
                     border-left: 1px solid rgba(0,255,255,0.15);
                     padding: 24px; color: #e0e0e0;
                 }
@@ -173,14 +173,14 @@ export default function XAIPanel({ analysisResult, onClose }) {
                     margin-bottom: 24px; padding-bottom: 16px;
                     border-bottom: 1px solid rgba(255,255,255,0.1);
                 }
-                .xai-header h2 { margin: 0; font-size: 1.4rem; color: #00fff5; }
+                .xai-header h2 { margin: 0; font-size: 1.4rem; color: var(--info); }
                 .xai-subtitle { color: #888; font-size: 0.85rem; }
                 .xai-close {
                     background: none; border: 1px solid rgba(255,255,255,0.1);
                     color: #999; font-size: 1.2rem; cursor: pointer; padding: 4px 10px;
                     border-radius: 6px; transition: all 0.2s;
                 }
-                .xai-close:hover { border-color: #ff4757; color: #ff4757; }
+                .xai-close:hover { border-color: var(--danger); color: var(--danger); }
 
                 .xai-verdict {
                     background: rgba(255,255,255,0.03); border-radius: 12px;
@@ -192,9 +192,9 @@ export default function XAIPanel({ analysisResult, onClose }) {
                 .xai-verdict.benign { border-color: rgba(46,213,115,0.3); }
                 .verdict-label { font-size: 0.7rem; letter-spacing: 2px; color: #888; margin-bottom: 4px; }
                 .verdict-value { font-size: 2rem; font-weight: 800; color: #fff; }
-                .malicious .verdict-value { color: #ff4757; }
-                .suspicious .verdict-value { color: #ffa502; }
-                .benign .verdict-value { color: #2ed573; }
+                .malicious .verdict-value { color: var(--danger); }
+                .suspicious .verdict-value { color: var(--warning); }
+                .benign .verdict-value { color: var(--success); }
 
                 .confidence-bar {
                     height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px;
@@ -202,12 +202,12 @@ export default function XAIPanel({ analysisResult, onClose }) {
                 }
                 .confidence-fill {
                     height: 100%; border-radius: 4px;
-                    background: linear-gradient(90deg, #00fff5, #7c4dff);
+                    background: var(--bg-secondary), var(--primary));
                 }
                 .verdict-confidence span { font-size: 0.85rem; color: #aaa; }
 
                 .xai-section { margin-bottom: 24px; }
-                .xai-section h3 { color: #00fff5; font-size: 1.1rem; margin-bottom: 8px; }
+                .xai-section h3 { color: var(--info); font-size: 1.1rem; margin-bottom: 8px; }
                 .xai-desc { color: #888; font-size: 0.85rem; margin-bottom: 12px; }
 
                 .feature-item {
@@ -231,19 +231,19 @@ export default function XAIPanel({ analysisResult, onClose }) {
 
                 .btn-explain {
                     width: 100%; padding: 14px; border: 1px solid rgba(0,255,245,0.3);
-                    background: rgba(0,255,245,0.05); color: #00fff5; font-size: 0.95rem;
+                    background: rgba(0,255,245,0.05); color: var(--info); font-size: 0.95rem;
                     border-radius: 10px; cursor: pointer; transition: all 0.3s;
                     font-weight: 600;
                 }
                 .btn-explain:hover {
-                    background: rgba(0,255,245,0.15); border-color: #00fff5;
+                    background: rgba(0,255,245,0.15); border-color: var(--info);
                     box-shadow: 0 0 20px rgba(0,255,245,0.2);
                 }
 
                 .xai-loading { display: flex; align-items: center; gap: 12px; padding: 20px; color: #aaa; }
                 .xai-spinner {
                     width: 24px; height: 24px; border: 2px solid rgba(0,255,245,0.2);
-                    border-top-color: #00fff5; border-radius: 50%;
+                    border-top-color: var(--info); border-radius: 50%;
                     animation: xai-spin 0.8s linear infinite;
                 }
                 @keyframes xai-spin { to { transform: rotate(360deg); } }

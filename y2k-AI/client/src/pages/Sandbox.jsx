@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
+import Terminal from '../components/Terminal'
 
 const pageVariants = {
     initial: { opacity: 0, y: 16 },
@@ -8,7 +9,7 @@ const pageVariants = {
     exit: { opacity: 0, y: -16 }
 }
 
-const SEVERITY_COLORS = { critical: '#ff3366', high: '#ff6600', medium: '#ffaa00', low: '#00d4ff', unknown: '#888' }
+const SEVERITY_COLORS = { critical: 'var(--danger)', high: '#ff6600', medium: '#ffaa00', low: 'var(--info)', unknown: '#888' }
 
 // ── SSH Connect Panel ─────────────────────────────────────────────────────────
 function SSHPanel({ onConnected }) {
@@ -68,11 +69,11 @@ function SSHPanel({ onConnected }) {
                 : <textarea className="input" placeholder="Paste PEM private key..." value={config.privateKey || ''} onChange={e => update('privateKey', e.target.value)} style={{ marginBottom: '0.75rem', height: 80, resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }} />
             }
 
-            {error && <div style={{ color: '#ff3366', fontSize: '0.8rem', marginBottom: '0.75rem', fontFamily: 'var(--font-mono)' }}>✗ {error}</div>}
+            {error && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '0.75rem', fontFamily: 'var(--font-mono)' }}>✗ {error}</div>}
 
             <button onClick={connect} disabled={connecting || !config.ssh_host} style={{
                 width: '100%', padding: '0.65rem', fontWeight: 700,
-                background: connecting || !config.ssh_host ? 'var(--bg-secondary)' : 'linear-gradient(135deg,#00d4ff,#0066cc)',
+                background: connecting || !config.ssh_host ? 'var(--bg-secondary)' : 'var(--bg-secondary),#0066cc)',
                 color: connecting || !config.ssh_host ? 'var(--text-muted)' : '#fff',
                 border: 'none', borderRadius: 8, cursor: connecting || !config.ssh_host ? 'not-allowed' : 'pointer',
                 fontSize: '0.9rem', transition: 'all 0.2s'
@@ -128,11 +129,11 @@ function UploadPanel({ sessionId, onUploaded }) {
             </div>
             <input ref={inputRef} type="file" style={{ display: 'none' }} onChange={e => setFile(e.target.files[0])} />
 
-            {error && <div style={{ color: '#ff3366', fontSize: '0.8rem', marginBottom: '0.5rem' }}>✗ {error}</div>}
+            {error && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>✗ {error}</div>}
 
             {result && (
                 <div style={{ padding: '0.75rem', background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 8, marginBottom: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>
-                    <div style={{ color: '#00ff88', marginBottom: '0.25rem' }}>✓ Uploaded to {result.remotePath}</div>
+                    <div style={{ color: 'var(--success)', marginBottom: '0.25rem' }}>✓ Uploaded to {result.remotePath}</div>
                     <div style={{ color: 'var(--text-muted)' }}>MD5: {result.md5}</div>
                     <div style={{ color: 'var(--text-muted)' }}>SHA256: {result.sha256?.slice(0, 32)}...</div>
                 </div>
@@ -140,7 +141,7 @@ function UploadPanel({ sessionId, onUploaded }) {
 
             <button onClick={upload} disabled={!file || uploading} style={{
                 width: '100%', padding: '0.6rem', fontWeight: 700,
-                background: !file || uploading ? 'var(--bg-secondary)' : 'linear-gradient(135deg,#00d4ff,#0066cc)',
+                background: !file || uploading ? 'var(--bg-secondary)' : 'var(--bg-secondary),#0066cc)',
                 color: !file || uploading ? 'var(--text-muted)' : '#fff',
                 border: 'none', borderRadius: 8, cursor: !file || uploading ? 'not-allowed' : 'pointer', fontSize: '0.85rem'
             }}>{uploading ? '⏳ Uploading...' : '⬆️ Upload to VM'}</button>
@@ -154,6 +155,7 @@ function ExecutionConsole({ sessionId, onDone }) {
     const [output, setOutput] = useState('')
     const [timeout, setTimeout_] = useState(30)
     const [done, setDone] = useState(false)
+    const [mode, setMode] = useState('live') // 'live' (terminal) or 'automated' (scripts)
     const consoleRef = useRef()
     const wsRef = useRef()
 
@@ -195,43 +197,66 @@ function ExecutionConsole({ sessionId, onDone }) {
     return (
         <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <div className="section-title" style={{ marginBottom: 0 }}>⚡ Execution Console</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Timeout:</label>
-                    <select value={timeout} onChange={e => setTimeout_(Number(e.target.value))} style={{
-                        background: 'var(--bg-secondary)', border: '1px solid var(--border)',
-                        borderRadius: 6, color: 'var(--text-primary)', padding: '0.25rem 0.5rem', fontSize: '0.8rem'
-                    }}>
-                        {[10, 30, 60, 120].map(t => <option key={t} value={t}>{t}s</option>)}
-                    </select>
-                    <button onClick={execute} disabled={running} style={{
-                        padding: '0.4rem 1rem', fontWeight: 700, fontSize: '0.82rem',
-                        background: running ? 'var(--bg-secondary)' : 'linear-gradient(135deg,#ff3366,#cc0033)',
-                        color: running ? 'var(--text-muted)' : '#fff',
-                        border: 'none', borderRadius: 6, cursor: running ? 'not-allowed' : 'pointer'
-                    }}>{running ? '⏳ Running...' : '▶ Execute'}</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div className="section-title" style={{ marginBottom: 0 }}>⚡ Execution</div>
+                    <div style={{ display: 'flex', background: 'var(--bg-secondary)', borderRadius: 8, padding: '2px', border: '1px solid var(--border)' }}>
+                        {['live', 'automated'].map(m => (
+                            <button key={m} onClick={() => setMode(m)} style={{
+                                padding: '0.3rem 0.75rem', borderRadius: 6, border: 'none',
+                                background: mode === m ? 'rgba(0,212,255,0.1)' : 'transparent',
+                                color: mode === m ? 'var(--cyan)' : 'var(--text-muted)',
+                                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, transition: 'all 0.2s'
+                            }}>{m === 'live' ? '🐚 Interactive Shell' : '🤖 Script Execution'}</button>
+                        ))}
+                    </div>
                 </div>
+
+                {mode === 'automated' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Timeout:</label>
+                        <select value={timeout} onChange={e => setTimeout_(Number(e.target.value))} style={{
+                            background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+                            borderRadius: 6, color: 'var(--text-primary)', padding: '0.25rem 0.5rem', fontSize: '0.8rem'
+                        }}>
+                            {[10, 30, 60, 120].map(t => <option key={t} value={t}>{t}s</option>)}
+                        </select>
+                        <button onClick={execute} disabled={running} style={{
+                            padding: '0.4rem 1rem', fontWeight: 700, fontSize: '0.82rem',
+                            background: running ? 'var(--bg-secondary)' : 'var(--bg-secondary),#cc0033)',
+                            color: running ? 'var(--text-muted)' : '#fff',
+                            border: 'none', borderRadius: 6, cursor: running ? 'not-allowed' : 'pointer'
+                        }}>{running ? '⏳ Running...' : '▶ Execute'}</button>
+                    </div>
+                )}
             </div>
 
-            {/* Terminal */}
-            <div ref={consoleRef} style={{
-                background: '#0a0a0a', border: '1px solid #333', borderRadius: 8,
-                padding: '1rem', height: 260, overflowY: 'auto',
-                fontFamily: 'var(--font-mono)', fontSize: '0.78rem', lineHeight: 1.6,
-                color: '#00ff88', whiteSpace: 'pre-wrap', wordBreak: 'break-all'
-            }}>
-                {output || <span style={{ color: '#555' }}>// Output will appear here when execution starts</span>}
-                {running && <span style={{ color: '#00d4ff' }} className="blink">█</span>}
+            {/* Console or Terminal */}
+            <div style={{ position: 'relative', height: 350 }}>
+                {mode === 'automated' ? (
+                    <div ref={consoleRef} style={{
+                        background: '#0a0a0a', border: '1px solid #333', borderRadius: 8,
+                        padding: '1rem', height: '100%', overflowY: 'auto',
+                        fontFamily: 'var(--font-mono)', fontSize: '0.78rem', lineHeight: 1.6,
+                        color: 'var(--success)', whiteSpace: 'pre-wrap', wordBreak: 'break-all'
+                    }}>
+                        {output || <span style={{ color: '#555' }}>// Output will appear here when execution starts</span>}
+                        {running && <span style={{ color: 'var(--info)' }} className="blink">█</span>}
+                    </div>
+                ) : (
+                    <Terminal sessionId={sessionId} />
+                )}
             </div>
 
             {done && (
-                <div style={{ marginTop: '0.5rem', fontSize: '0.78rem', color: '#00ff88', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.78rem', color: 'var(--success)', fontFamily: 'var(--font-mono)' }}>
                     ✓ Execution complete — scroll down to analyze artifacts
                 </div>
             )}
         </div>
     )
 }
+
+import RefreshButton from '../components/RefreshButton'
 
 // ── Artifacts Panel ───────────────────────────────────────────────────────────
 function ArtifactsPanel({ sessionId }) {
@@ -267,10 +292,7 @@ function ArtifactsPanel({ sessionId }) {
         <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                 <div className="section-title" style={{ marginBottom: 0 }}>🔬 Artifacts</div>
-                <button onClick={load} disabled={loading} style={{
-                    padding: '0.3rem 0.75rem', fontSize: '0.75rem', background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', color: 'var(--text-muted)'
-                }}>{loading ? '⏳' : '↻ Refresh'}</button>
+                <RefreshButton loading={loading} onClick={load} />
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
@@ -336,18 +358,18 @@ function AnalysisPanel({ sessionId, fileInfo }) {
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button onClick={cleanup} style={{
                         padding: '0.35rem 0.75rem', fontSize: '0.75rem', background: 'rgba(255,51,102,0.1)',
-                        border: '1px solid rgba(255,51,102,0.3)', borderRadius: 6, cursor: 'pointer', color: '#ff3366'
+                        border: '1px solid rgba(255,51,102,0.3)', borderRadius: 6, cursor: 'pointer', color: 'var(--danger)'
                     }}>🗑 Cleanup</button>
                     <button onClick={analyze} disabled={analyzing} style={{
                         padding: '0.35rem 1rem', fontSize: '0.82rem', fontWeight: 700,
-                        background: analyzing ? 'var(--bg-secondary)' : 'linear-gradient(135deg,#00d4ff,#0066cc)',
+                        background: analyzing ? 'var(--bg-secondary)' : 'var(--bg-secondary),#0066cc)',
                         color: analyzing ? 'var(--text-muted)' : '#fff',
                         border: 'none', borderRadius: 6, cursor: analyzing ? 'not-allowed' : 'pointer'
                     }}>{analyzing ? '⏳ Analyzing...' : '🧠 Analyze'}</button>
                 </div>
             </div>
 
-            {error && <div style={{ color: '#ff3366', fontSize: '0.8rem', marginBottom: '0.75rem', padding: '0.5rem 0.75rem', background: 'rgba(255,51,102,0.1)', borderRadius: 6 }}>✗ {error}</div>}
+            {error && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '0.75rem', padding: '0.5rem 0.75rem', background: 'rgba(255,51,102,0.1)', borderRadius: 6 }}>✗ {error}</div>}
 
             {!result && !analyzing && (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
@@ -374,7 +396,7 @@ function AnalysisPanel({ sessionId, fileInfo }) {
                         {staticData && (
                             <div style={{ textAlign: 'right', fontSize: '0.72rem' }}>
                                 <div style={{ fontWeight: 700 }}>VirusTotal</div>
-                                <div style={{ color: staticData.malicious > 0 ? '#ff3366' : '#00ff88' }}>{staticData.malicious}/{staticData.total}</div>
+                                <div style={{ color: staticData.malicious > 0 ? 'var(--danger)' : 'var(--success)' }}>{staticData.malicious}/{staticData.total}</div>
                             </div>
                         )}
                     </div>
@@ -491,7 +513,7 @@ function AnalysisPanel({ sessionId, fileInfo }) {
                                 <div style={{ paddingLeft: '1rem' }}>
                                     {dynamic.recommendedActions.map((a, i) => (
                                         <div key={i} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.3rem', color: 'var(--text-secondary)' }}>
-                                            <span style={{ color: '#00ff88', flexShrink: 0, fontWeight: 600 }}>{i + 1}.</span> {a}
+                                            <span style={{ color: 'var(--success)', flexShrink: 0, fontWeight: 600 }}>{i + 1}.</span> {a}
                                         </div>
                                     ))}
                                 </div>
@@ -521,7 +543,7 @@ export default function Sandbox() {
             {/* Header */}
             <div style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg,#00d4ff,#0066cc)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', boxShadow: '0 0 20px rgba(0,212,255,0.3)' }}>🧪</div>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--bg-secondary),#0066cc)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', boxShadow: '0 0 20px rgba(0,212,255,0.3)' }}>🧪</div>
                     <div>
                         <div className="page-title" style={{ marginBottom: 0 }}>Dynamic Analysis Sandbox</div>
                         <div className="page-subtitle" style={{ marginBottom: 0 }}>Execute malware in your isolated VM — AI-guided analysis</div>
@@ -532,7 +554,7 @@ export default function Sandbox() {
             {/* Status bar */}
             {session && (
                 <div style={{ padding: '0.6rem 1rem', background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 8, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.82rem' }}>
-                    <span style={{ color: '#00ff88', fontWeight: 700 }}>● CONNECTED</span>
+                    <span style={{ color: 'var(--success)', fontWeight: 700 }}>● CONNECTED</span>
                     <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Session: {session.sessionId?.slice(0, 8)}...</span>
                     <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Sandbox: {session.sandboxDir}</span>
                     {uploadInfo && <span style={{ color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>📄 {uploadInfo.filename}</span>}
@@ -550,7 +572,7 @@ export default function Sandbox() {
                                 padding: '0.3rem 0.75rem', borderRadius: 100, fontWeight: 600,
                                 background: done ? 'rgba(0,255,136,0.15)' : active ? 'rgba(0,212,255,0.15)' : 'var(--bg-secondary)',
                                 border: `1px solid ${done ? 'rgba(0,255,136,0.3)' : active ? 'rgba(0,212,255,0.3)' : 'var(--border)'}`,
-                                color: done ? '#00ff88' : active ? 'var(--cyan)' : 'var(--text-muted)'
+                                color: done ? 'var(--success)' : active ? 'var(--cyan)' : 'var(--text-muted)'
                             }}>{done ? '✓ ' : ''}{step}</div>
                             {i < 3 && <span style={{ color: 'var(--border)' }}>→</span>}
                         </div>
@@ -567,7 +589,7 @@ export default function Sandbox() {
                         : <div className="card" style={{ borderColor: 'rgba(0,255,136,0.3)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div>
-                                    <div style={{ fontWeight: 700, color: '#00ff88' }}>✓ Sandbox Connected</div>
+                                    <div style={{ fontWeight: 700, color: 'var(--success)' }}>✓ Sandbox Connected</div>
                                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '0.25rem' }}>{session.sandboxDir}</div>
                                 </div>
                                 <button onClick={() => setSession(null)} style={{ padding: '0.3rem 0.75rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.78rem' }}>Disconnect</button>

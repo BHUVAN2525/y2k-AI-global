@@ -37,13 +37,15 @@ function SOARPanel({ incident, onAction }) {
                 </button>
             </div>
             {results.map((r, i) => (
-                <div key={i} style={{ marginTop: '0.5rem', padding: '0.4rem 0.75rem', background: 'var(--bg-secondary)', borderRadius: 6, fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: '#00ff88' }}>
+                <div key={i} style={{ marginTop: '0.5rem', padding: '0.4rem 0.75rem', background: 'var(--bg-secondary)', borderRadius: 6, fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--success)' }}>
                     ✓ {r?.result}
                 </div>
             ))}
         </div>
     )
 }
+
+import RefreshButton from '../../components/RefreshButton'
 
 export default function IncidentManager() {
     const [incidents, setIncidents] = useState([])
@@ -90,7 +92,7 @@ export default function IncidentManager() {
                             <option value="">All Severity</option>
                             {['critical', 'high', 'medium', 'low'].map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
-                        <button className="btn btn-ghost btn-sm" onClick={load}>↻ Refresh</button>
+                        <RefreshButton loading={loading} onClick={load} />
                     </div>
 
                     {loading ? <div style={{ color: 'var(--text-muted)', padding: '2rem' }}>Loading...</div> :
@@ -103,7 +105,7 @@ export default function IncidentManager() {
                                 {incidents.map(inc => (
                                     <div key={inc._id} className="card" onClick={() => setSelected(inc)}
                                         style={{
-                                            cursor: 'pointer', borderLeft: `3px solid ${inc.severity === 'critical' ? '#ff3366' : inc.severity === 'high' ? '#ff8800' : '#ffcc00'}`,
+                                            cursor: 'pointer', borderLeft: `3px solid ${inc.severity === 'critical' ? 'var(--danger)' : inc.severity === 'high' ? '#ff8800' : 'var(--warning)'}`,
                                             background: selected?._id === inc._id ? 'var(--bg-hover)' : 'var(--bg-card)'
                                         }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>

@@ -7,6 +7,12 @@ const router = express.Router();
 const LogEntry = require('../../models/LogEntry');
 const Incident = require('../../models/Incident');
 const { broadcast } = require('../../services/ws');
+const connectDB = require('../../config/db');
+const anomalyDetector = require('../../services/anomalyDetector');
+
+// In-memory cache if DB connection is lost (ingestion and detection continue)
+const inMemoryLogs = [];
+const inMemoryIncidents = [];
 
 // MITRE ATT&CK technique lookup (local, no API needed)
 const MITRE_PATTERNS = [
@@ -73,35 +79,79 @@ router.post('/logs', async (req, res) => {
     try {
         const { source = 'custom', message, raw, host, ip, user, process: proc, event_id, timestamp } = req.body;
 
-        if (!message) return res.status(400).json({ error: 'message is required' });
+        const { flags, severity, mitreTechnique, mitreTactic, threatScore: baseThreatScore } = detectThreats(message, ip, user);
 
-        const { flags, severity, mitreTechnique, mitreTactic, threatScore } = detectThreats(message, ip, user);
+        // Call Node.js Anomaly Detector
+        let anomalyScore = 0;
+        try {
+            const anomalyRes = anomalyDetector.detectAnomalies([
+                { message, source, ip: ip || '', user: user || '', timestamp: timestamp || new Date().toISOString() }
+            ]);
+            anomalyScore = anomalyRes.results?.[0]?.score || 0;
+        } catch (err) {
+            console.error('[Anomaly] Engine call failed:', err.message);
+        }
 
-        const level = threatScore > 70 ? 'critical' : threatScore > 40 ? 'error' : threatScore > 20 ? 'warning' : 'info';
+        const totalThreatScore = Math.min(100, baseThreatScore + (anomalyScore * 0.2));
+        const level = totalThreatScore > 70 ? 'critical' : totalThreatScore > 40 ? 'error' : totalThreatScore > 20 ? 'warning' : 'info';
 
-        const entry = await LogEntry.create({
-            source, message, raw, host, ip, user, process: proc, event_id,
-            level, threat_score: threatScore, threat_flags: flags,
-            mitre_technique: mitreTechnique,
-            timestamp: timestamp ? new Date(timestamp) : new Date()
-        });
+        let entry;
+        if (connectDB.isConnected()) {
+            entry = await LogEntry.create({
+                source, message, raw, host, ip, user, process: proc, event_id,
+                level, threat_score: totalThreatScore, threat_flags: flags,
+                mitre_technique: mitreTechnique,
+                anomaly_score: anomalyScore,
+                timestamp: timestamp ? new Date(timestamp) : new Date()
+            });
+        } else {
+            entry = {
+                _id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                source, message, raw, host, ip, user, process: proc, event_id,
+                level, threat_score: totalThreatScore, threat_flags: flags,
+                mitre_technique: mitreTechnique,
+                anomaly_score: anomalyScore,
+                timestamp: timestamp ? new Date(timestamp) : new Date()
+            };
+            inMemoryLogs.push(entry);
+            if (inMemoryLogs.length > 1000) inMemoryLogs.shift();
+        }
 
         // Auto-create incident for high/critical threats
         let incident = null;
         if (threatScore >= 50 && flags.length > 0) {
-            incident = await Incident.create({
-                title: `${flags[0]} detected from ${ip || host || 'unknown'}`,
-                severity: severity,
-                type: flags[0]?.toLowerCase().replace(/ /g, '_'),
-                mitre_technique: mitreTechnique,
-                mitre_tactic: mitreTactic,
-                source_ip: ip,
-                target: host,
-                description: message,
-                evidence: [entry._id.toString()]
-            });
-            entry.incident_id = incident._id;
-            await entry.save();
+            if (connectDB.isConnected()) {
+                incident = await Incident.create({
+                    title: `${flags[0]} detected from ${ip || host || 'unknown'}`,
+                    severity: severity,
+                    type: flags[0]?.toLowerCase().replace(/ /g, '_'),
+                    mitre_technique: mitreTechnique,
+                    mitre_tactic: mitreTactic,
+                    source_ip: ip,
+                    target: host,
+                    description: message,
+                    evidence: [entry._id.toString()]
+                });
+                entry.incident_id = incident._id;
+                await entry.save();
+            } else {
+                incident = {
+                    _id: `inc-${Date.now()}`,
+                    title: `${flags[0]} detected from ${ip || host || 'unknown'}`,
+                    severity: severity,
+                    type: flags[0]?.toLowerCase().replace(/ /g, '_'),
+                    status: 'open',
+                    mitre_technique: mitreTechnique,
+                    mitre_tactic: mitreTactic,
+                    source_ip: ip,
+                    target: host,
+                    description: message,
+                    evidence: [entry._id.toString()],
+                    timestamp: new Date()
+                };
+                inMemoryIncidents.push(incident);
+                entry.incident_id = incident._id;
+            }
         }
 
         // Broadcast via WebSocket
@@ -137,6 +187,20 @@ router.post('/logs/batch', async (req, res) => {
 router.get('/logs', async (req, res) => {
     try {
         const { host, level, threat_min = 0, limit = 100, page = 1, search } = req.query;
+
+        if (!connectDB.isConnected()) {
+            let filtered = [...inMemoryLogs];
+            if (host) filtered = filtered.filter(l => l.host === host);
+            if (level) filtered = filtered.filter(l => l.level === level);
+            if (threat_min > 0) filtered = filtered.filter(l => l.threat_score >= Number(threat_min));
+            if (search) {
+                const re = new RegExp(search, 'i');
+                filtered = filtered.filter(l => re.test(l.message));
+            }
+            const logs = filtered.sort((a, b) => b.timestamp - a.timestamp).slice((page - 1) * limit, page * limit);
+            return res.json({ logs, total: filtered.length, page: Number(page) });
+        }
+
         const filter = {};
         if (host) filter.host = host;
         if (level) filter.level = level;
@@ -158,6 +222,18 @@ router.get('/logs', async (req, res) => {
 // GET /api/blue/threats — recent threats
 router.get('/threats', async (req, res) => {
     try {
+        if (!connectDB.isConnected()) {
+            const threats = inMemoryLogs.filter(l => l.threat_score >= 30).sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
+            const incidents = inMemoryIncidents.filter(i => i.status !== 'resolved').sort((a, b) => b.timestamp - a.timestamp).slice(0, 20);
+            const stats = {
+                total_logs: inMemoryLogs.length,
+                threats_today: inMemoryLogs.filter(l => l.threat_score >= 30 && (Date.now() - l.timestamp < 86400000)).length,
+                open_incidents: inMemoryIncidents.filter(i => i.status === 'open').length,
+                critical_incidents: inMemoryIncidents.filter(i => i.severity === 'critical' && i.status !== 'resolved').length
+            };
+            return res.json({ threats, incidents, stats });
+        }
+
         const threats = await LogEntry.find({ threat_score: { $gte: 30 } })
             .sort({ timestamp: -1 }).limit(50);
         const incidents = await Incident.find({ status: { $ne: 'resolved' } })

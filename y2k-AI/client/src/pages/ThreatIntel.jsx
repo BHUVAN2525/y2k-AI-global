@@ -43,10 +43,10 @@ export default function ThreatIntel() {
 
     const getThreatBadge = (level) => {
         const colors = {
-            critical: { bg: 'rgba(255,71,87,0.15)', color: '#ff4757', border: 'rgba(255,71,87,0.4)' },
-            high: { bg: 'rgba(255,165,2,0.15)', color: '#ffa502', border: 'rgba(255,165,2,0.4)' },
+            critical: { bg: 'rgba(255,71,87,0.15)', color: 'var(--danger)', border: 'rgba(255,71,87,0.4)' },
+            high: { bg: 'rgba(255,165,2,0.15)', color: 'var(--warning)', border: 'rgba(255,165,2,0.4)' },
             medium: { bg: 'rgba(55,66,250,0.15)', color: '#5b8aff', border: 'rgba(55,66,250,0.4)' },
-            low: { bg: 'rgba(46,213,115,0.15)', color: '#2ed573', border: 'rgba(46,213,115,0.4)' },
+            low: { bg: 'rgba(46,213,115,0.15)', color: 'var(--success)', border: 'rgba(46,213,115,0.4)' },
             unknown: { bg: 'rgba(255,255,255,0.05)', color: '#888', border: 'rgba(255,255,255,0.1)' },
         }
         const c = colors[level] || colors.unknown
@@ -140,7 +140,7 @@ export default function ThreatIntel() {
                                                         {data.detections !== undefined && (
                                                             <div className="ti-data-row">
                                                                 <span>Detections</span>
-                                                                <strong style={{ color: data.detections > 0 ? '#ff4757' : '#2ed573' }}>
+                                                                <strong style={{ color: data.detections > 0 ? 'var(--danger)' : 'var(--success)' }}>
                                                                     {data.detection_rate || `${data.detections}`}
                                                                 </strong>
                                                             </div>
@@ -148,7 +148,7 @@ export default function ThreatIntel() {
                                                         {data.abuse_confidence_score !== undefined && (
                                                             <div className="ti-data-row">
                                                                 <span>Abuse Confidence</span>
-                                                                <strong style={{ color: data.abuse_confidence_score > 50 ? '#ff4757' : '#2ed573' }}>
+                                                                <strong style={{ color: data.abuse_confidence_score > 50 ? 'var(--danger)' : 'var(--success)' }}>
                                                                     {data.abuse_confidence_score}%
                                                                 </strong>
                                                             </div>
@@ -174,7 +174,7 @@ export default function ThreatIntel() {
                                                         {data.is_tor && (
                                                             <div className="ti-data-row">
                                                                 <span>Tor Exit Node</span>
-                                                                <strong style={{ color: '#ff4757' }}>YES</strong>
+                                                                <strong style={{ color: 'var(--danger)' }}>YES</strong>
                                                             </div>
                                                         )}
                                                         {data.file_type && (
@@ -254,7 +254,7 @@ export default function ThreatIntel() {
             <style>{`
                 .ti-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
                 .ti-header { margin-bottom: 32px; }
-                .ti-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .ti-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .ti-subtitle { color: #888; margin-top: 4px; }
 
                 .ti-search-card {
@@ -271,7 +271,7 @@ export default function ThreatIntel() {
                 }
                 .ti-tab.active {
                     background: rgba(0,255,245,0.1); border-color: rgba(0,255,245,0.3);
-                    color: #00fff5;
+                    color: var(--info);
                 }
 
                 .ti-search-input-row { display: flex; gap: 12px; }
@@ -280,9 +280,9 @@ export default function ThreatIntel() {
                     border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
                     color: #e0e0e0; font-size: 0.95rem; font-family: 'Fira Code', monospace;
                 }
-                .ti-search-input:focus { outline: none; border-color: #00fff5; }
+                .ti-search-input:focus { outline: none; border-color: var(--info); }
                 .ti-search-btn {
-                    padding: 12px 24px; background: linear-gradient(135deg, #00fff5, #7c4dff);
+                    padding: 12px 24px; background: var(--bg-secondary), var(--primary));
                     border: none; border-radius: 10px; color: #000; font-weight: 700;
                     cursor: pointer; white-space: nowrap; transition: all 0.3s;
                 }
@@ -290,7 +290,7 @@ export default function ThreatIntel() {
                 .ti-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
                 .ti-results { margin-top: 20px; }
-                .ti-error { color: #ff4757; padding: 16px; background: rgba(255,71,87,0.08); border-radius: 10px; }
+                .ti-error { color: var(--danger); padding: 16px; background: rgba(255,71,87,0.08); border-radius: 10px; }
 
                 .ti-result-header {
                     display: flex; justify-content: space-between; align-items: center;
@@ -311,7 +311,7 @@ export default function ThreatIntel() {
                 .ti-source-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
                 .ti-source-header h4 { margin: 0; color: #ddd; font-size: 1rem; }
                 .ti-source-status { font-size: 0.8rem; }
-                .ti-source-status.online { color: #2ed573; }
+                .ti-source-status.online { color: var(--success); }
                 .ti-source-status.offline { color: #888; }
 
                 .ti-data-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
@@ -320,7 +320,7 @@ export default function ThreatIntel() {
 
                 .ti-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
                 .ti-tag {
-                    padding: 3px 10px; background: rgba(124,77,255,0.12); color: #b388ff;
+                    padding: 3px 10px; background: rgba(124,77,255,0.12); color: var(--primary);
                     border-radius: 5px; font-size: 0.75rem; border: 1px solid rgba(124,77,255,0.2);
                 }
 
@@ -338,12 +338,12 @@ export default function ThreatIntel() {
                 .ti-feed-header h3 { margin: 0; color: #ddd; font-size: 1rem; }
                 .ti-feed-status { font-size: 0.8rem; }
                 .ti-feed-type {
-                    font-size: 0.75rem; color: #00fff5; background: rgba(0,255,245,0.08);
+                    font-size: 0.75rem; color: var(--info); background: rgba(0,255,245,0.08);
                     padding: 3px 10px; border-radius: 5px; text-transform: uppercase;
                     letter-spacing: 0.5px;
                 }
                 .ti-feed-count { margin-top: 12px; color: #aaa; }
-                .ti-feed-count strong { color: #00fff5; font-size: 1.3rem; }
+                .ti-feed-count strong { color: var(--info); font-size: 1.3rem; }
 
                 .ti-feed-samples { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
                 .ti-feed-sample {

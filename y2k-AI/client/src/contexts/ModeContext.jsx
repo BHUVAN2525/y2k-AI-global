@@ -22,9 +22,9 @@ export function ModeProvider({ children }) {
         setTimeout(() => setSwitching(false), 400)
     }
 
-    // Apply mode class to root
+    // Apply mode class to root (locked to blue per user request to prevent color shifting)
     useEffect(() => {
-        document.documentElement.setAttribute('data-mode', mode)
+        document.documentElement.setAttribute('data-mode', 'blue')
     }, [mode])
 
     return (

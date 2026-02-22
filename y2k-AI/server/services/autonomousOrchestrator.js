@@ -13,11 +13,17 @@ const AutonomousBlueAgent = require('../agents/autonomousBlueAgent');
 const AutonomousRedAgent = require('../agents/autonomousRedAgent');
 const { v4: uuidv4 } = require('uuid');
 
+const BattleRecord = require('../models/BattleRecord');
+const connectDB = require('../config/db');
+const { getKey } = require('./apiIntegration');
+const malwareAnalysis = require('./malwareAnalysisService');
+
 class AutonomousOrchestrator {
-    constructor(geminiKey = process.env.GEMINI_API_KEY) {
+    constructor(geminiKey = getKey('gemini_api_key')) {
         this.orchestratorId = `orchestrator-${uuidv4().slice(0, 8)}`;
         this.blueAgent = new AutonomousBlueAgent(geminiKey);
         this.redAgent = new AutonomousRedAgent(geminiKey);
+        this.malwareService = malwareAnalysis;
         this.operationQueue = [];
         this.operationHistory = [];
         this.orchestrationStatus = 'ready';
@@ -26,13 +32,63 @@ class AutonomousOrchestrator {
     }
 
     /**
+     * Trigger autonomous forensic analysis of a file
+     */
+    async runAutonomousMalwareAnalysis(sessionId, filePath, fileName) {
+        const operationId = uuidv4();
+        console.log(`[ORCHESTRATOR] Starting Autonomous Malware Analysis: ${operationId}`);
+
+        try {
+            this.orchestrationStatus = 'analysis_running';
+            this.runningOperations[operationId] = {
+                type: 'malware_analysis',
+                startTime: new Date(),
+                status: 'in_progress',
+                target: fileName
+            };
+
+            const result = await this.malwareService.analyzeFile(sessionId, filePath, fileName);
+
+            this.runningOperations[operationId].status = 'completed';
+            this.runningOperations[operationId].endTime = new Date();
+            this.runningOperations[operationId].result = result;
+
+            // Persist to DB
+            if (connectDB.isConnected()) {
+                try {
+                    await BattleRecord.create({
+                        battleId: operationId,
+                        attacker: 'Unknown Malware',
+                        defender: 'Autonomous Analysis Agent',
+                        winner: result.status === 'completed' ? 'Blue (Analysis Success)' : 'Undetermined',
+                        rounds: [result],
+                        metrics: {
+                            analysis_status: result.status,
+                            static_indicators: Object.keys(result.findings.static).length,
+                            dynamic_trace: result.findings.dynamic.fullTraceAvailable
+                        }
+                    });
+                } catch (dbErr) {
+                    console.error('[Orchestrator] Failed to save analysis record:', dbErr.message);
+                }
+            }
+
+            this.orchestrationStatus = 'ready';
+            return result;
+        } catch (err) {
+            this.orchestrationStatus = 'ready';
+            return { success: false, error: err.message };
+        }
+    }
+
+    /**
      * Run complete autonomous Blue Team operation
      */
     async runAutonomousBlueDefense(context = {}) {
         const operationId = uuidv4();
-        
+
         console.log(`[ORCHESTRATOR] Starting Blue Team autonomous operation: ${operationId}`);
-        
+
         try {
             this.orchestrationStatus = 'blue_running';
             this.runningOperations[operationId] = {
@@ -48,15 +104,55 @@ class AutonomousOrchestrator {
             this.runningOperations[operationId].endTime = new Date();
             this.runningOperations[operationId].result = result;
 
-            // Record in history
-            this.operationHistory.push({
+            const record = {
                 operationId,
                 type: 'blue',
                 timestamp: new Date().toISOString(),
                 duration: this.runningOperations[operationId].endTime - this.runningOperations[operationId].startTime,
                 status: 'completed',
                 result
-            });
+            };
+
+            // Record in history
+            this.operationHistory.push(record);
+
+            // Persist to DB if available
+            if (connectDB.isConnected()) {
+                try {
+                    await BattleRecord.create({
+                        battleId: operationId,
+                        attacker: 'N/A',
+                        defender: 'Autonomous Blue Agent',
+                        winner: 'Blue',
+                        rounds: [result],
+                        metrics: {
+                            threatsDetected: result.workflow?.threats?.length || 0,
+                            incidentsResolved: Object.keys(result.workflow?.incidents || {}).length
+                        }
+                    });
+                } catch (dbErr) {
+                    console.error('[Orchestrator] Failed to save blue record to DB:', dbErr.message);
+                }
+            }
+
+            // AUTO-TRIGGER FORENSICS: If blue agent recommended forensic sandbox analysis
+            if (result.workflow?.incidents) {
+                for (const incId in result.workflow.incidents) {
+                    const inc = result.workflow.incidents[incId];
+                    if (inc.forensicInvestigation?.action === 'trigger_sandbox_analysis') {
+                        console.log(`[ORCHESTRATOR] Auto-triggering forensic analysis for incident: ${incId}`);
+                        // In a real scenario, we'd need the actual sample path. 
+                        // For autonomy, we assume the latest uploaded or a target path from context.
+                        const targetPath = inc.forensicInvestigation.target || '/tmp/captured_sample';
+                        const targetName = targetPath.split('/').pop();
+
+                        // Run analysis asynchronously to not block
+                        this.runAutonomousMalwareAnalysis(context.sessionId || 'default', targetPath, targetName)
+                            .then(fRes => console.log(`[ORCHESTRATOR] Auto-forensics complete for ${incId}`))
+                            .catch(fErr => console.error(`[ORCHESTRATOR] Auto-forensics failed: ${fErr.message}`));
+                    }
+                }
+            }
 
             this.orchestrationStatus = 'ready';
 
@@ -68,8 +164,10 @@ class AutonomousOrchestrator {
                 result
             };
         } catch (err) {
-            this.runningOperations[operationId].status = 'failed';
-            this.runningOperations[operationId].error = err.message;
+            if (this.runningOperations[operationId]) {
+                this.runningOperations[operationId].status = 'failed';
+                this.runningOperations[operationId].error = err.message;
+            }
             this.orchestrationStatus = 'ready';
 
             return {
@@ -85,9 +183,9 @@ class AutonomousOrchestrator {
      */
     async runAutonomousRedTeam(labTarget = {}) {
         const operationId = uuidv4();
-        
+
         console.log(`[ORCHESTRATOR] Starting Red Team autonomous simulation: ${operationId}`);
-        
+
         try {
             this.orchestrationStatus = 'red_running';
             this.runningOperations[operationId] = {
@@ -117,8 +215,7 @@ class AutonomousOrchestrator {
             this.runningOperations[operationId].endTime = new Date();
             this.runningOperations[operationId].result = result;
 
-            // Record in history
-            this.operationHistory.push({
+            const record = {
                 operationId,
                 type: 'red',
                 timestamp: new Date().toISOString(),
@@ -126,7 +223,29 @@ class AutonomousOrchestrator {
                 status: 'completed',
                 target: labTarget,
                 result
-            });
+            };
+
+            // Record in history
+            this.operationHistory.push(record);
+
+            // Persist to DB if available
+            if (connectDB.isConnected()) {
+                try {
+                    await BattleRecord.create({
+                        battleId: operationId,
+                        attacker: 'Autonomous Red Agent',
+                        defender: 'Lab Target',
+                        winner: result.success ? 'Red' : 'Blue',
+                        rounds: [result],
+                        metrics: {
+                            phasesCompleted: result.simulation?.phases?.length || 0,
+                            criticality: result.simulation?.report?.criticality || 'low'
+                        }
+                    });
+                } catch (dbErr) {
+                    console.error('[Orchestrator] Failed to save red record to DB:', dbErr.message);
+                }
+            }
 
             this.orchestrationStatus = 'ready';
 
@@ -138,8 +257,10 @@ class AutonomousOrchestrator {
                 result
             };
         } catch (err) {
-            this.runningOperations[operationId].status = 'failed';
-            this.runningOperations[operationId].error = err.message;
+            if (this.runningOperations[operationId]) {
+                this.runningOperations[operationId].status = 'failed';
+                this.runningOperations[operationId].error = err.message;
+            }
             this.orchestrationStatus = 'ready';
 
             return {
@@ -157,7 +278,7 @@ class AutonomousOrchestrator {
         console.log(`[ORCHESTRATOR] Starting FULL autonomous operation - Blue + Red`);
 
         const operationId = uuidv4();
-        
+
         try {
             this.orchestrationStatus = 'full_operation';
 
@@ -170,7 +291,7 @@ class AutonomousOrchestrator {
             // Correlate results
             const correlation = this.correlateResults(blueResult, redResult);
 
-            this.operationHistory.push({
+            const record = {
                 operationId,
                 type: 'full_operation',
                 timestamp: new Date().toISOString(),
@@ -178,7 +299,28 @@ class AutonomousOrchestrator {
                 blue: blueResult,
                 red: redResult,
                 correlation
-            });
+            };
+
+            this.operationHistory.push(record);
+
+            // Persist to DB
+            if (connectDB.isConnected()) {
+                try {
+                    await BattleRecord.create({
+                        battleId: operationId,
+                        attacker: 'Autonomous Red Agent',
+                        defender: 'Autonomous Blue Agent',
+                        winner: redResult.simulation?.phases?.length > blueResult.workflow?.threats?.length ? 'Red' : 'Blue',
+                        rounds: [redResult, blueResult],
+                        metrics: {
+                            correlation_score: correlation.detectionCoverage?.length || 0,
+                            gaps_identified: correlation.gapAnalysis?.length || 0
+                        }
+                    });
+                } catch (dbErr) {
+                    console.error('[Orchestrator] Failed to save full record to DB:', dbErr.message);
+                }
+            }
 
             this.orchestrationStatus = 'ready';
 
@@ -215,16 +357,16 @@ class AutonomousOrchestrator {
 
         // Get Blue detected threats
         const blueThreats = blueResult?.result?.workflow?.threats || [];
-        
+
         // Get Red attack paths
         const redPhases = redResult?.result?.simulation?.phases || [];
 
         // Correlate
         blueThreats.forEach(threat => {
-            const relatedPhases = redPhases.filter(phase => 
+            const relatedPhases = redPhases.filter(phase =>
                 phase.mitre_mapping?.some(m => threat.title?.includes(m))
             );
-            
+
             if (relatedPhases.length > 0) {
                 correlation.detectionCoverage.push({
                     threat: threat.title,
@@ -286,9 +428,9 @@ class AutonomousOrchestrator {
         const total = gaps + coverage;
 
         if (total === 0) return 'unknown';
-        
+
         const percentage = (coverage / total) * 100;
-        
+
         if (percentage >= 90) return 'strong';
         if (percentage >= 70) return 'adequate';
         if (percentage >= 50) return 'needs_improvement';
@@ -303,7 +445,7 @@ class AutonomousOrchestrator {
 
         const scheduledTask = setInterval(async () => {
             console.log(`[ORCHESTRATOR] Running scheduled ${type} operation`);
-            
+
             if (type === 'blue') {
                 await this.runAutonomousBlueDefense();
             } else if (type === 'red') {

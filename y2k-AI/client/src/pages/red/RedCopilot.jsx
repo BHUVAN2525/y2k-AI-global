@@ -17,10 +17,10 @@ function MessageBubble({ msg }) {
     const isUser = msg.role === 'user'
     return (
         <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start', marginBottom: '1rem' }}>
-            {!isUser && <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #ff3366, #cc0033)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0, marginRight: '0.75rem' }}>⚔️</div>}
+            {!isUser && <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg-secondary), #cc0033)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0, marginRight: '0.75rem' }}>⚔️</div>}
             <div style={{
                 maxWidth: '75%', padding: '0.75rem 1rem', borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                background: isUser ? 'linear-gradient(135deg, #ff3366, #cc0033)' : 'var(--bg-card)',
+                background: isUser ? 'var(--bg-secondary), #cc0033)' : 'var(--bg-card)',
                 border: isUser ? 'none' : '1px solid var(--border)',
                 color: isUser ? '#fff' : 'var(--text-primary)',
                 fontSize: '0.875rem', lineHeight: 1.6, whiteSpace: 'pre-wrap'
@@ -80,7 +80,7 @@ export default function RedCopilot() {
         <motion.div className="page-container" variants={pageVariants} initial="initial" animate="animate" style={{ maxWidth: 900 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                 <div className="page-title" style={{ marginBottom: 0 }}>⚔️ Red Team Copilot</div>
-                <span style={{ background: 'rgba(255,51,102,0.15)', color: '#ff3366', border: '1px solid rgba(255,51,102,0.3)', padding: '0.2rem 0.6rem', borderRadius: 100, fontSize: '0.7rem', fontWeight: 700 }}>⚠️ AUTHORIZED LAB ONLY</span>
+                <span style={{ background: 'rgba(255,51,102,0.15)', color: 'var(--danger)', border: '1px solid rgba(255,51,102,0.3)', padding: '0.2rem 0.6rem', borderRadius: 100, fontSize: '0.7rem', fontWeight: 700 }}>⚠️ AUTHORIZED LAB ONLY</span>
             </div>
             <div className="page-subtitle">AI-powered attack simulation and exploitation path planning</div>
 
@@ -100,7 +100,7 @@ export default function RedCopilot() {
                         )}
                         {loading && steps.length === 0 && (
                             <div style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem 1rem', alignItems: 'center' }}>
-                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff3366', animation: 'blink 1s infinite' }} />
+                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', animation: 'blink 1s infinite' }} />
                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Planning attack...</span>
                             </div>
                         )}
@@ -114,7 +114,7 @@ export default function RedCopilot() {
                             disabled={loading}
                         />
                         <button onClick={() => send()} disabled={loading || !input.trim()}
-                            style={{ padding: '0.6rem 1rem', background: '#ff3366', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700 }}>
+                            style={{ padding: '0.6rem 1rem', background: 'var(--danger)', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700 }}>
                             {loading ? '...' : '→'}
                         </button>
                     </div>

@@ -75,7 +75,7 @@ export default function CyberRange() {
     }
 
     const getDiffColor = (d) => {
-        const colors = { beginner: '#2ed573', intermediate: '#ffa502', advanced: '#ff4757', expert: '#b388ff' }
+        const colors = { beginner: 'var(--success)', intermediate: 'var(--warning)', advanced: 'var(--danger)', expert: 'var(--primary)' }
         return colors[d] || '#888'
     }
 
@@ -166,15 +166,15 @@ export default function CyberRange() {
             <style>{`
                 .cr-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
                 .cr-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-                .cr-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .cr-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .cr-subtitle { color: #888; margin-top: 4px; }
                 .cr-player-info { display: flex; gap: 12px; align-items: center; }
-                .cr-level { background: linear-gradient(135deg, #7c4dff, #b388ff); padding: 6px 14px; border-radius: 8px; color: #fff; font-weight: 800; font-size: 0.9rem; }
-                .cr-xp { color: #ffa502; font-weight: 700; font-size: 1rem; }
+                .cr-level { background: var(--bg-secondary), var(--primary)); padding: 6px 14px; border-radius: 8px; color: #fff; font-weight: 800; font-size: 0.9rem; }
+                .cr-xp { color: var(--warning); font-weight: 700; font-size: 1rem; }
 
                 .cr-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
                 .cr-tab { padding: 8px 18px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #999; border-radius: 8px; cursor: pointer; text-transform: capitalize; }
-                .cr-tab.active { background: rgba(0,255,245,0.1); border-color: rgba(0,255,245,0.3); color: #00fff5; }
+                .cr-tab.active { background: rgba(0,255,245,0.1); border-color: rgba(0,255,245,0.3); color: var(--info); }
 
                 .cr-scenarios-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
                 .cr-scenario-card {
@@ -191,7 +191,7 @@ export default function CyberRange() {
                 .cr-sc-meta span { font-size: 0.8rem; color: #999; }
                 .cr-start-btn {
                     width: 100%; padding: 10px; background: rgba(0,255,245,0.1); border: 1px solid rgba(0,255,245,0.2);
-                    color: #00fff5; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s;
+                    color: var(--info); border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s;
                 }
                 .cr-start-btn:hover { background: rgba(0,255,245,0.2); }
 
@@ -204,21 +204,21 @@ export default function CyberRange() {
                 .cr-lb-you { border-color: rgba(0,255,245,0.3); background: rgba(0,255,245,0.05); }
                 .cr-lb-rank { font-size: 1.3rem; min-width: 30px; }
                 .cr-lb-name { flex: 1; color: #e0e0e0; font-weight: 600; }
-                .cr-lb-score { color: #ffa502; font-weight: 700; }
+                .cr-lb-score { color: var(--warning); font-weight: 700; }
 
                 .cr-terminal-container { background: #0d0d14; border: 1px solid rgba(0,255,245,0.15); border-radius: 14px; overflow: hidden; }
                 .cr-terminal-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: rgba(0,255,245,0.05); border-bottom: 1px solid rgba(0,255,245,0.1); }
-                .cr-terminal-header span { color: #00fff5; font-weight: 700; font-size: 0.9rem; }
-                .cr-exit-btn { background: none; border: none; color: #ff4757; cursor: pointer; font-size: 1rem; }
+                .cr-terminal-header span { color: var(--info); font-weight: 700; font-size: 0.9rem; }
+                .cr-exit-btn { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; }
                 .cr-terminal { height: 400px; overflow-y: auto; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.6; }
-                .cr-line-system { color: #00fff5; }
-                .cr-line-info { color: #b388ff; }
-                .cr-line-success { color: #2ed573; }
-                .cr-line-error { color: #ff4757; }
-                .cr-line-command { color: #ffa502; }
+                .cr-line-system { color: var(--info); }
+                .cr-line-info { color: var(--primary); }
+                .cr-line-success { color: var(--success); }
+                .cr-line-error { color: var(--danger); }
+                .cr-line-command { color: var(--warning); }
                 .cr-line-text { color: #ccc; }
                 .cr-input-row { display: flex; align-items: center; padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.05); }
-                .cr-prompt { color: #00fff5; font-family: monospace; margin-right: 8px; }
+                .cr-prompt { color: var(--info); font-family: monospace; margin-right: 8px; }
                 .cr-input { flex: 1; background: none; border: none; color: #e0e0e0; font-family: monospace; font-size: 0.9rem; outline: none; }
             `}</style>
         </div>

@@ -8,7 +8,6 @@
 
 const Scan = require('../models/Scan');
 const AgentSession = require('../models/AgentSession');
-const pythonBridge = require('./pythonBridge');
 
 // ─── Intent Detection ─────────────────────────────────────────────────────────
 

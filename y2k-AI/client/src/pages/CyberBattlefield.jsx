@@ -100,7 +100,7 @@ export default function CyberBattlefield() {
                 const r = node.type === 'zone' ? 30 : 22
                 // Glow
                 const gradient = ctx.createRadialGradient(node.x, node.y, r * 0.5, node.x, node.y, r * 1.5)
-                const threatColor = node.threat > 0.7 ? '#ff4757' : node.threat > 0.4 ? '#ffa502' : '#2ed573'
+                const threatColor = node.threat > 0.7 ? 'var(--danger)' : node.threat > 0.4 ? 'var(--warning)' : 'var(--success)'
                 gradient.addColorStop(0, threatColor + '30')
                 gradient.addColorStop(1, 'transparent')
                 ctx.fillStyle = gradient
@@ -111,7 +111,7 @@ export default function CyberBattlefield() {
                 ctx.arc(node.x, node.y, r, 0, Math.PI * 2)
                 ctx.fillStyle = selectedNode === node.id ? 'rgba(0,255,245,0.2)' : 'rgba(15,15,26,0.9)'
                 ctx.fill()
-                ctx.strokeStyle = selectedNode === node.id ? '#00fff5' : threatColor + '80'
+                ctx.strokeStyle = selectedNode === node.id ? 'var(--info)' : threatColor + '80'
                 ctx.lineWidth = 2
                 ctx.stroke()
 
@@ -135,6 +135,28 @@ export default function CyberBattlefield() {
     }, [selectedNode])
 
     useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const res = await axios.get('/api/battles');
+                if (res.data && res.data.length > 0) {
+                    // Map historic rounds to battle events
+                    const historicEvents = res.data.flatMap(battle =>
+                        battle.rounds.map(r => ({
+                            ...r,
+                            time: new Date(battle.timestamp).toLocaleTimeString(),
+                            id: `${battle._id}-${r.round}`
+                        }))
+                    ).slice(0, 20);
+                    setActiveAttacks(historicEvents);
+                }
+            } catch (err) {
+                console.error('Failed to fetch battle history', err);
+            }
+        };
+        fetchHistory();
+    }, []);
+
+    useEffect(() => {
         if (!isLive) return
         const interval = setInterval(() => {
             const event = ATTACK_EVENTS[Math.floor(Math.random() * ATTACK_EVENTS.length)]
@@ -142,10 +164,10 @@ export default function CyberBattlefield() {
                 from: event.source,
                 to: event.target,
                 progress: 0,
-                color: event.severity === 'critical' ? '#ff4757' : event.severity === 'high' ? '#ffa502' : '#3742fa',
+                color: event.severity === 'critical' ? 'var(--danger)' : event.severity === 'high' ? 'var(--warning)' : '#3742fa',
             })
             setActiveAttacks(prev => [{ ...event, id: Date.now() }, ...prev].slice(0, 20))
-        }, 1500)
+        }, 3000) // Slower randomized feed when live
         return () => clearInterval(interval)
     }, [isLive])
 
@@ -158,8 +180,8 @@ export default function CyberBattlefield() {
     }
 
     const getSevColor = (sev) => {
-        if (sev === 'critical') return '#ff4757'
-        if (sev === 'high') return '#ffa502'
+        if (sev === 'critical') return 'var(--danger)'
+        if (sev === 'high') return 'var(--warning)'
         return '#3742fa'
     }
 
@@ -211,7 +233,7 @@ export default function CyberBattlefield() {
                                             <div className="cb-info-row"><span>Name</span><strong>{node.label}</strong></div>
                                             <div className="cb-info-row"><span>Type</span><strong>{node.type}</strong></div>
                                             <div className="cb-info-row"><span>Threat</span>
-                                                <strong style={{ color: node.threat > 0.7 ? '#ff4757' : node.threat > 0.4 ? '#ffa502' : '#2ed573' }}>
+                                                <strong style={{ color: node.threat > 0.7 ? 'var(--danger)' : node.threat > 0.4 ? 'var(--warning)' : 'var(--success)' }}>
                                                     {(node.threat * 100).toFixed(0)}%
                                                 </strong>
                                             </div>
@@ -227,14 +249,14 @@ export default function CyberBattlefield() {
             <style>{`
                 .cb-page { max-width: 1300px; margin: 0 auto; padding: 24px; }
                 .cb-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-                .cb-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .cb-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .cb-subtitle { color: #888; margin-top: 4px; }
                 .cb-live-btn {
                     padding: 10px 22px; border: 1px solid rgba(255,71,87,0.3); background: rgba(255,71,87,0.08);
-                    color: #ff4757; border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.3s;
+                    color: var(--danger); border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.3s;
                 }
                 .cb-live-btn.active {
-                    background: rgba(255,71,87,0.2); border-color: #ff4757;
+                    background: rgba(255,71,87,0.2); border-color: var(--danger);
                     animation: cb-pulse 1.5s ease-in-out infinite;
                 }
                 @keyframes cb-pulse { 0%, 100% { box-shadow: 0 0 0 rgba(255,71,87,0); } 50% { box-shadow: 0 0 20px rgba(255,71,87,0.3); } }
@@ -267,7 +289,7 @@ export default function CyberBattlefield() {
                     background: rgba(255,255,255,0.03); border: 1px solid rgba(0,255,245,0.15);
                     border-radius: 12px; padding: 16px;
                 }
-                .cb-node-info h4 { margin: 0 0 10px; color: #00fff5; font-size: 0.95rem; }
+                .cb-node-info h4 { margin: 0 0 10px; color: var(--info); font-size: 0.95rem; }
                 .cb-info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.85rem; }
                 .cb-info-row span { color: #888; }
                 .cb-info-row strong { color: #ddd; }

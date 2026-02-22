@@ -8,6 +8,18 @@ const { vtLookup, abuseIPDB, shodanHost } = require('./apiIntegration');
 const sandboxService = require('./sandboxService');
 const LogEntry = require('../models/LogEntry');
 const Incident = require('../models/Incident');
+const AuditLog = require('../models/AuditLog');
+const fs = require('fs');
+const path = require('path');
+
+// Load whitelist from config
+let WHITELIST = { ssh: [], dangerous_patterns: [] };
+try {
+    const configPath = path.join(__dirname, '../config/toolWhitelist.json');
+    WHITELIST = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+} catch (err) {
+    console.error('Failed to load toolWhitelist.json, using safe defaults');
+}
 
 // ── Permission Matrix ─────────────────────────────────────────────────────────
 const TOOL_PERMISSIONS = {
@@ -23,18 +35,14 @@ const TOOL_PERMISSIONS = {
     build_playbook: { blue: true, red: false },
 };
 
-// SSH command whitelist — only safe commands allowed
-const SSH_COMMAND_WHITELIST = [
-    /^ps\s/i, /^netstat/i, /^ss\s/i, /^ls\s/i, /^cat\s/i,
-    /^find\s/i, /^grep\s/i, /^nmap\s/i, /^ping\s/i,
-    /^uname/i, /^whoami/i, /^id$/i, /^ifconfig/i, /^ip\s/i,
-    /^nikto/i, /^curl\s/i, /^wget\s/i, /^file\s/i,
-    /^strings\s/i, /^md5sum/i, /^sha256sum/i, /^hexdump/i,
-    /^strace\s/i, /^ltrace\s/i, /^lsof/i, /^top\s/i,
-];
-
 function isCommandAllowed(cmd) {
-    return SSH_COMMAND_WHITELIST.some(r => r.test(cmd.trim()));
+    const cleanCmd = cmd.trim();
+    // Check for character injection
+    if (WHITELIST.dangerous_patterns.some(p => new RegExp(p).test(cleanCmd))) {
+        return false;
+    }
+    // Check against command whitelist
+    return WHITELIST.ssh.some(p => new RegExp(p, 'i').test(cleanCmd));
 }
 
 // MITRE ATT&CK quick reference
@@ -205,22 +213,63 @@ async function getSandboxArtifacts(args) {
 
 async function run(toolName, args, mode, sessionId) {
     const perms = TOOL_PERMISSIONS[toolName];
-    if (!perms) return { error: `Unknown tool: ${toolName}` };
-    if (!perms[mode]) return { error: `Tool "${toolName}" is not available in ${mode} mode`, blocked: true };
+    let result;
+    let status = 'success';
+    let error = null;
 
-    switch (toolName) {
-        case 'search_logs': return searchLogs(args);
-        case 'get_incidents': return getIncidents(args);
-        case 'virustotal_lookup': return vtLookup(args.hash);
-        case 'abuseipdb_check': return abuseIPDB(args.ip);
-        case 'shodan_lookup': return shodanHost(args.ip);
-        case 'ssh_exec': return sshExec(args, sessionId);
-        case 'get_sandbox_artifacts': return getSandboxArtifacts(args);
-        case 'get_mitre_info': return getMitreInfo(args);
-        case 'generate_siem_rule': return generateSiemRule(args);
-        case 'build_playbook': return buildPlaybook(args);
-        default: return { error: `Tool not implemented: ${toolName}` };
+    if (!perms) {
+        status = 'failed';
+        error = `Unknown tool: ${toolName}`;
+    } else if (!perms[mode]) {
+        status = 'blocked';
+        error = `Tool "${toolName}" is not available in ${mode} mode`;
     }
+
+    if (status === 'success') {
+        try {
+            switch (toolName) {
+                case 'search_logs': result = await searchLogs(args); break;
+                case 'get_incidents': result = await getIncidents(args); break;
+                case 'virustotal_lookup': result = await vtLookup(args.hash); break;
+                case 'abuseipdb_check': result = await abuseIPDB(args.ip); break;
+                case 'shodan_lookup': result = await shodanHost(args.ip); break;
+                case 'ssh_exec': result = await sshExec(args, sessionId); break;
+                case 'get_sandbox_artifacts': result = await getSandboxArtifacts(args); break;
+                case 'get_mitre_info': result = await getMitreInfo(args); break;
+                case 'generate_siem_rule': result = await generateSiemRule(args); break;
+                case 'build_playbook': result = await buildPlaybook(args); break;
+                default:
+                    status = 'failed';
+                    error = `Tool not implemented: ${toolName}`;
+            }
+            if (result?.error) {
+                status = result.blocked ? 'blocked' : 'failed';
+                error = result.error;
+            }
+        } catch (err) {
+            status = 'failed';
+            error = err.message;
+            result = { error: err.message };
+        }
+    } else {
+        result = { error, blocked: true };
+    }
+
+    // Persist Audit Log
+    try {
+        await AuditLog.create({
+            mode,
+            tool: toolName,
+            command: args.command || args.query || args.hash || args.ip || args.technique_id || args.threat_type || '',
+            target: sessionId || args.session_id || args.ip || '',
+            status,
+            error
+        });
+    } catch (logErr) {
+        console.error('Failed to save AuditLog:', logErr);
+    }
+
+    return result;
 }
 
 // Tool definitions for Gemini function calling

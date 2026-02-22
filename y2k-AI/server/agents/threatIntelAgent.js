@@ -111,14 +111,20 @@ class ThreatIntelAgent {
         return patterns.some(p => p.test(message));
     }
 
-    async think(message, sessionId = null, history = []) {
+    async think(message, sessionId = null, history = [], callbacks = {}) {
         const tools = [
             { name: 'virustotal_lookup', description: 'Check a file hash or IP against VirusTotal', parameters: { type: 'object', properties: { hash: { type: 'string' } }, required: ['hash'] } },
             { name: 'search_logs', description: 'Search local security event logs', parameters: { type: 'object', properties: { query: { type: 'string' }, limit: { type: 'number' } }, required: ['query'] } },
             { name: 'get_mitre_info', description: 'Look up MITRE ATT&CK technique details', parameters: { type: 'object', properties: { technique_id: { type: 'string' } }, required: ['technique_id'] } },
         ];
 
-        const steps = [{ type: 'thinking', message: `Threat Intel Agent analyzing: "${message.slice(0, 60)}..."` }];
+        const steps = [];
+        const pushStep = (step) => {
+            steps.push(step);
+            callbacks.onStep?.(step);
+        };
+
+        pushStep({ type: 'thinking', message: `Threat Intel Agent analyzing: "${message.slice(0, 60)}..."` });
 
         try {
             const messages = [...history.slice(-6), { role: 'user', content: message }];
@@ -138,9 +144,12 @@ class ThreatIntelAgent {
 
             if (geminiResponse.toolCalls?.length > 0) {
                 for (const tc of geminiResponse.toolCalls) {
-                    steps.push({ type: 'tool_call', message: `${this.name}: ${tc.name}(${JSON.stringify(tc.args).slice(0, 80)})` });
+                    pushStep({ type: 'tool_call', message: `${this.name}: ${tc.name}(${JSON.stringify(tc.args).slice(0, 80)})` });
                     const result = await toolExecutor.run(tc.name, tc.args, 'blue', sessionId);
-                    toolsUsed.push({ tool: tc.name, args: tc.args, result });
+                    const toolObj = { tool: tc.name, args: tc.args, result };
+                    toolsUsed.push(toolObj);
+                    callbacks.onTool?.(toolObj);
+                    pushStep({ type: 'tool_result', message: `${tc.name} → ${result.error ? 'Error' : 'Success'}` });
                 }
 
                 const toolSummary = toolsUsed.map(t =>

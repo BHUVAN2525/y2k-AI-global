@@ -99,15 +99,15 @@ export default function ArchitectureDesigner() {
 
                         <div className="ad-metrics">
                             <div className="ad-metric-card">
-                                <span className="ad-metric-val" style={{ color: '#2ed573' }}>{design.risk_reduction}%</span>
+                                <span className="ad-metric-val" style={{ color: 'var(--success)' }}>{design.risk_reduction}%</span>
                                 <span>Risk Reduction</span>
                             </div>
                             <div className="ad-metric-card">
-                                <span className="ad-metric-val" style={{ color: '#ffa502' }}>{design.implementation_cost}</span>
+                                <span className="ad-metric-val" style={{ color: 'var(--warning)' }}>{design.implementation_cost}</span>
                                 <span>Est. Cost</span>
                             </div>
                             <div className="ad-metric-card">
-                                <span className="ad-metric-val" style={{ color: '#b388ff' }}>{design.timeline}</span>
+                                <span className="ad-metric-val" style={{ color: 'var(--primary)' }}>{design.timeline}</span>
                                 <span>Timeline</span>
                             </div>
                         </div>
@@ -135,7 +135,7 @@ export default function ArchitectureDesigner() {
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${c.score}%` }}
                                                 transition={{ delay: i * 0.2 }}
-                                                style={{ background: c.score > 80 ? '#2ed573' : c.score > 60 ? '#ffa502' : '#ff4757' }}
+                                                style={{ background: c.score > 80 ? 'var(--success)' : c.score > 60 ? 'var(--warning)' : 'var(--danger)' }}
                                             />
                                         </div>
                                         <span className="ad-comp-score">{c.score}%</span>
@@ -151,7 +151,7 @@ export default function ArchitectureDesigner() {
             <style>{`
                 .ad-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
                 .ad-header { margin-bottom: 24px; }
-                .ad-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .ad-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .ad-subtitle { color: #888; margin-top: 4px; }
 
                 .ad-wizard h3 { color: #e0e0e0; margin: 0 0 16px; }
@@ -161,7 +161,7 @@ export default function ArchitectureDesigner() {
                     border-radius: 14px; cursor: pointer; transition: all 0.3s;
                 }
                 .ad-pattern:hover { border-color: rgba(0,255,245,0.2); }
-                .ad-pattern.selected { border-color: #00fff5; background: rgba(0,255,245,0.05); }
+                .ad-pattern.selected { border-color: var(--info); background: rgba(0,255,245,0.05); }
                 .ad-pat-icon { font-size: 2rem; }
                 .ad-pattern h4 { margin: 8px 0 4px; color: #e0e0e0; }
                 .ad-pattern p { color: #888; font-size: 0.85rem; margin: 0 0 10px; }
@@ -171,7 +171,7 @@ export default function ArchitectureDesigner() {
                 .ad-name-row { display: flex; gap: 12px; }
                 .ad-name-input { flex: 1; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #ddd; font-size: 0.9rem; outline: none; }
                 .ad-gen-btn {
-                    padding: 12px 28px; background: linear-gradient(135deg, #00fff5, #7c4dff);
+                    padding: 12px 28px; background: var(--bg-secondary), var(--primary));
                     border: none; border-radius: 10px; color: #000; font-weight: 700; cursor: pointer; transition: all 0.3s;
                 }
                 .ad-gen-btn:disabled { opacity: 0.4; }
@@ -197,7 +197,7 @@ export default function ArchitectureDesigner() {
                 }
                 .ad-recs h3, .ad-compliance h3 { color: #e0e0e0; margin: 0 0 14px; }
                 .ad-rec-group { margin-bottom: 12px; }
-                .ad-rec-group h4 { color: #00fff5; margin: 0 0 6px; font-size: 0.9rem; }
+                .ad-rec-group h4 { color: var(--info); margin: 0 0 6px; font-size: 0.9rem; }
                 .ad-rec-item { color: #aaa; font-size: 0.85rem; padding: 2px 0; }
 
                 .ad-comp-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -205,7 +205,7 @@ export default function ArchitectureDesigner() {
                 .ad-comp-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
                 .ad-comp-fill { height: 100%; border-radius: 4px; }
                 .ad-comp-score { font-weight: 700; font-size: 0.85rem; color: #ddd; min-width: 35px; }
-                .ad-comp-gaps { font-size: 0.78rem; color: #ff4757; }
+                .ad-comp-gaps { font-size: 0.78rem; color: var(--danger); }
             `}</style>
         </div>
     )

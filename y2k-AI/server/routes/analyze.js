@@ -3,7 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Scan = require('../models/Scan');
-const pythonBridge = require('../services/pythonBridge');
+const mlEngine = require('../services/mlEngine');
 
 const router = express.Router();
 
@@ -24,31 +24,15 @@ router.post('/', upload.single('file'), async (req, res) => {
     try {
         broadcast({ type: 'analysis_start', filename });
 
-        // Step 1: Static analysis + ML
+        // Step 1: Static analysis + ML (Node.js Native)
         broadcast({ type: 'analysis_step', step: 'static', filename });
-        const analysisResult = await pythonBridge.analyze(filePath, filename);
-
-        // Step 2: VirusTotal (optional)
-        let vtResult = null;
-        try {
-            broadcast({ type: 'analysis_step', step: 'virustotal', filename });
-            vtResult = await pythonBridge.analyzeVirusTotal(filePath, filename);
-        } catch { /* VT not configured */ }
-
-        // Step 3: SHAP explanation (executables only)
-        let explanation = null;
-        if (analysisResult.file_category === 'executable') {
-            try {
-                broadcast({ type: 'analysis_step', step: 'explain', filename });
-                explanation = await pythonBridge.explain(filePath, filename);
-            } catch { /* Explainer not available */ }
-        }
+        const analysisResult = await mlEngine.analyzeFile(filePath, filename);
 
         // Merge results
         const fullResult = {
             ...analysisResult,
-            virustotal: vtResult,
-            explanation
+            virustotal: null, // Deprecated in favor of ThreatIntelAgent or external APIs
+            explanation: null // SHAP explainer requires Python Scikit-Learn; simulated in ML engine details
         };
 
         // Save to MongoDB

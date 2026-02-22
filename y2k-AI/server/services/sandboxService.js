@@ -7,6 +7,8 @@ const { Client } = require('ssh2');
 const { EventEmitter } = require('events');
 const path = require('path');
 const crypto = require('crypto');
+const net = require('net');
+const db = require('../config/db');
 
 // In-memory session store
 const sessions = new Map();
@@ -21,28 +23,82 @@ function createSession(sshConfig) {
         const sandboxDir = `/tmp/sandbox_${sessionId.slice(0, 8)}`;
 
         conn.on('ready', () => {
-            // Create isolated sandbox directory
-            conn.exec(`mkdir -p ${sandboxDir} && echo "READY:${sandboxDir}"`, (err, stream) => {
-                if (err) return reject(err);
-                let output = '';
-                stream.on('data', d => output += d.toString());
-                stream.on('close', () => {
-                    if (output.includes('READY:')) {
-                        const session = { id: sessionId, conn, sandboxDir, config: { ...sshConfig, password: '***' }, artifacts: {}, status: 'connected', createdAt: new Date() };
-                        sessions.set(sessionId, session);
-                        resolve({ sessionId, sandboxDir });
-                    } else {
-                        reject(new Error('Failed to create sandbox directory'));
+            console.log(`[SSH] Connection ready for session: ${sessionId}`);
+            console.log(`[SSH Tunnel] Establishing MongoDB port forward...`);
+
+            // Create local server to listen for Mongoose traffic
+            const proxyServer = net.createServer((socket) => {
+                conn.forwardOut(socket.remoteAddress, socket.remotePort, '127.0.0.1', 27017, (err, stream) => {
+                    if (err) {
+                        socket.end();
+                        return;
                     }
+                    socket.pipe(stream);
+                    stream.pipe(socket);
+                });
+            });
+
+            proxyServer.on('error', (err) => {
+                console.error('[SSH Tunnel] Proxy server error:', err.message);
+                conn.end(); // Close SSH if proxy fails
+                reject(new Error('Proxy server error: ' + err.message));
+            });
+
+            // Use 0 to let the OS assign an available port
+            proxyServer.listen(0, '127.0.0.1', () => {
+                const proxyPort = proxyServer.address().port;
+                console.log(`[SSH Tunnel] Forwarding local port ${proxyPort} to remote 27017. Switching DB...`);
+                // Switch the app's MongoDB connection to use the tunnel
+                db.switchConnection(`mongodb://127.0.0.1:${proxyPort}/cerebus`).catch(err => {
+                    console.error('[SSH Tunnel] DB switch failed:', err.message);
+                });
+
+                // Create isolated sandbox directory
+                conn.exec(`mkdir -p ${sandboxDir} && echo "READY:${sandboxDir}"`, (err, stream) => {
+                    if (err) {
+                        proxyServer.close();
+                        return reject(err);
+                    }
+                    let output = '';
+                    stream.on('data', d => output += d.toString());
+                    stream.on('error', (execErr) => {
+                        proxyServer.close();
+                        reject(execErr);
+                    });
+                    stream.on('close', () => {
+                        if (output.includes('READY:')) {
+                            const session = {
+                                id: sessionId, conn, sandboxDir,
+                                proxyServer, proxyPort,
+                                config: { ...sshConfig, password: '***' },
+                                artifacts: {}, status: 'connected', createdAt: new Date()
+                            };
+                            sessions.set(sessionId, session);
+                            resolve({ sessionId, sandboxDir, proxyPort });
+                        } else {
+                            proxyServer.close();
+                            reject(new Error('Failed to create sandbox directory'));
+                        }
+                    });
                 });
             });
         });
 
         conn.on('error', err => {
+            console.error(`[SSH Error] Session ${sessionId}:`, err);
             const msg = err.level === 'client-authentication'
                 ? `Authentication failed for ${sshConfig.username}@${sshConfig.host} — check password or enable PasswordAuthentication in sshd_config`
                 : `SSH connection failed: ${err.message}`;
+
             reject(new Error(msg));
+        });
+
+        conn.on('close', () => {
+            console.log(`[SSH Close] Connection closed for session: ${sessionId}`);
+        });
+
+        conn.on('end', () => {
+            console.log(`[SSH End] Connection ended for session: ${sessionId}`);
         });
 
         // Handle keyboard-interactive auth (used by many Linux VMs)
@@ -55,8 +111,9 @@ function createSession(sshConfig) {
             host: sshConfig.host,
             port: sshConfig.port || 22,
             username: sshConfig.username,
-            readyTimeout: 15000,
+            readyTimeout: 30000,
             tryKeyboard: true,  // Enable keyboard-interactive fallback
+            debug: (msg) => console.log(`[SSH Debug] ${msg}`)
         };
 
         // Support older SSH server algorithms
@@ -84,8 +141,12 @@ function createSession(sshConfig) {
             connectConfig.password = sshConfig.password;
         }
 
-        console.log(`[SSH] Connecting to ${sshConfig.host}:${sshConfig.port || 22} as ${sshConfig.username}`);
-        conn.connect(connectConfig);
+        console.log(`[SSH] Connecting to ${sshConfig.host}:${sshConfig.port || 22} as ${sshConfig.username} (timeout: 30s)`);
+        try {
+            conn.connect(connectConfig);
+        } catch (e) {
+            reject(new Error(`Failed to initiate SSH connection: ${e.message}`));
+        }
     });
 }
 
@@ -223,12 +284,47 @@ function collectArtifacts(sessionId) {
 }
 
 /**
+ * Restore sandbox to a clean state
+ */
+function restoreSnapshot(sessionId) {
+    return new Promise((resolve, reject) => {
+        const session = sessions.get(sessionId);
+        if (!session) return reject(new Error('Session not found'));
+
+        // Soft reset: remove and recreate sandbox directory
+        session.conn.exec(`rm -rf ${session.sandboxDir} && mkdir -p ${session.sandboxDir} && echo "RESTORED"`, (err, stream) => {
+            if (err) return reject(err);
+            let output = '';
+            stream.on('data', d => output += d.toString());
+            stream.on('close', () => {
+                if (output.includes('RESTORED')) {
+                    session.status = 'connected'; // Reset status
+                    session.artifacts = {}; // Clear old artifacts
+                    resolve({ status: 'restored', sessionId });
+                } else {
+                    reject(new Error('Failed to restore snapshot'));
+                }
+            });
+        });
+    });
+}
+
+/**
  * Cleanup sandbox session — delete temp dir, close connection
  */
 function cleanupSession(sessionId) {
     return new Promise((resolve) => {
         const session = sessions.get(sessionId);
         if (!session) return resolve({ cleaned: false });
+
+        // Switch Mongoose back to local DB
+        console.log(`[SSH Tunnel] Reverting MongoDB connection to local...`);
+        db.switchConnection(process.env.MONGO_URI || 'mongodb://localhost:27017/cerebus').catch(console.error);
+
+        // Close proxy server if it was created
+        if (session.proxyServer) {
+            session.proxyServer.close();
+        }
 
         session.conn.exec(`rm -rf ${session.sandboxDir}`, (err, stream) => {
             if (stream) stream.on('close', () => {
@@ -241,6 +337,21 @@ function cleanupSession(sessionId) {
                 sessions.delete(sessionId);
                 resolve({ cleaned: true, sessionId });
             }
+        });
+    });
+}
+
+/**
+ * Create an interactive shell for the session
+ */
+function createShell(sessionId, windowOptions = {}) {
+    return new Promise((resolve, reject) => {
+        const session = sessions.get(sessionId);
+        if (!session) return reject(new Error('Session not found'));
+
+        session.conn.shell(windowOptions, (err, stream) => {
+            if (err) return reject(err);
+            resolve(stream);
         });
     });
 }
@@ -268,4 +379,4 @@ function listSessions() {
     }));
 }
 
-module.exports = { createSession, uploadSample, executeInSandbox, collectArtifacts, cleanupSession, getSession, listSessions };
+module.exports = { createSession, uploadSample, executeInSandbox, collectArtifacts, cleanupSession, getSession, listSessions, createShell, restoreSnapshot };

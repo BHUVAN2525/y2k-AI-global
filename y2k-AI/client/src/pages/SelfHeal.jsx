@@ -81,7 +81,7 @@ export default function SelfHeal() {
     }
 
     const getRiskColor = (level) => {
-        const c = { critical: '#ff4757', high: '#ffa502', medium: '#3742fa', low: '#2ed573' }
+        const c = { critical: 'var(--danger)', high: 'var(--warning)', medium: '#3742fa', low: 'var(--success)' }
         return c[level] || '#888'
     }
 
@@ -156,8 +156,8 @@ export default function SelfHeal() {
                                 </div>
                                 <div className="sh-plan-stats">
                                     <div><strong>{plan.total_steps}</strong> Steps</div>
-                                    <div><strong style={{ color: '#2ed573' }}>{plan.auto_approve_steps}</strong> Auto</div>
-                                    <div><strong style={{ color: '#ffa502' }}>{plan.manual_approve_steps}</strong> Manual</div>
+                                    <div><strong style={{ color: 'var(--success)' }}>{plan.auto_approve_steps}</strong> Auto</div>
+                                    <div><strong style={{ color: 'var(--warning)' }}>{plan.manual_approve_steps}</strong> Manual</div>
                                     <div><strong>{plan.risk_reduction}</strong> Risk ↓</div>
                                 </div>
                                 <div className="sh-steps">
@@ -268,7 +268,7 @@ export default function SelfHeal() {
 
             <style>{`
                 .sh-page { max-width: 1100px; margin: 0 auto; padding: 24px; }
-                .sh-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .sh-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .sh-subtitle { color: #888; margin-top: 4px; }
 
                 .sh-tabs { display: flex; gap: 8px; margin: 24px 0; }
@@ -279,7 +279,7 @@ export default function SelfHeal() {
                 }
                 .sh-tab.active {
                     background: rgba(0,255,245,0.1); border-color: rgba(0,255,245,0.3);
-                    color: #00fff5;
+                    color: var(--info);
                 }
 
                 .sh-form {
@@ -294,10 +294,10 @@ export default function SelfHeal() {
                     border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
                     color: #e0e0e0; font-size: 0.9rem;
                 }
-                .sh-field select:focus, .sh-field input:focus { outline: none; border-color: #00fff5; }
+                .sh-field select:focus, .sh-field input:focus { outline: none; border-color: var(--info); }
 
                 .sh-analyze-btn {
-                    width: 100%; padding: 14px; background: linear-gradient(135deg, #00fff5, #7c4dff);
+                    width: 100%; padding: 14px; background: var(--bg-secondary), var(--primary));
                     border: none; border-radius: 10px; color: #000; font-weight: 700;
                     font-size: 1rem; cursor: pointer; transition: all 0.3s;
                 }
@@ -310,7 +310,7 @@ export default function SelfHeal() {
                 }
                 .sh-plan-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
                 .sh-plan-header h3 { margin: 0; color: #e0e0e0; }
-                .sh-mitre { font-size: 0.8rem; color: #b388ff; background: rgba(124,77,255,0.12); padding: 3px 10px; border-radius: 5px; }
+                .sh-mitre { font-size: 0.8rem; color: var(--primary); background: rgba(124,77,255,0.12); padding: 3px 10px; border-radius: 5px; }
 
                 .sh-risk-score {
                     width: 70px; height: 70px; border-radius: 50%; border: 3px solid;
@@ -330,18 +330,18 @@ export default function SelfHeal() {
                     padding: 14px; margin-bottom: 8px; background: rgba(0,0,0,0.2);
                     border-radius: 10px; border-left: 3px solid rgba(255,255,255,0.1);
                 }
-                .sh-step.completed { border-left-color: #2ed573; }
+                .sh-step.completed { border-left-color: var(--success); }
                 .sh-step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
                 .sh-step-num { color: #888; font-weight: 700; font-size: 0.85rem; }
                 .sh-step-action { color: #ddd; font-weight: 600; text-transform: capitalize; }
                 .sh-step-risk { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; margin-left: auto; }
-                .sh-step-risk.low { color: #2ed573; background: rgba(46,213,115,0.1); }
-                .sh-step-risk.medium { color: #ffa502; background: rgba(255,165,2,0.1); }
-                .sh-step-risk.high { color: #ff4757; background: rgba(255,71,87,0.1); }
+                .sh-step-risk.low { color: var(--success); background: rgba(46,213,115,0.1); }
+                .sh-step-risk.medium { color: var(--warning); background: rgba(255,165,2,0.1); }
+                .sh-step-risk.high { color: var(--danger); background: rgba(255,71,87,0.1); }
                 .sh-step-cmd { display: block; padding: 8px 12px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 0.82rem; color: #aaa; word-break: break-all; }
                 .sh-step-footer { margin-top: 8px; }
-                .sh-auto { color: #2ed573; font-size: 0.8rem; }
-                .sh-manual { color: #ffa502; font-size: 0.8rem; }
+                .sh-auto { color: var(--success); font-size: 0.8rem; }
+                .sh-manual { color: var(--warning); font-size: 0.8rem; }
 
                 .sh-patch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
                 .sh-patch-card {
@@ -349,7 +349,7 @@ export default function SelfHeal() {
                     border-radius: 14px;
                 }
                 .sh-patch-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
-                .sh-patch-header strong { color: #00fff5; }
+                .sh-patch-header strong { color: var(--info); }
                 .sh-severity { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
                 .sh-patch-card h4 { margin: 0 0 8px; color: #ddd; }
                 .sh-affected, .sh-fix { margin: 4px 0; font-size: 0.85rem; color: #999; }
@@ -366,7 +366,7 @@ export default function SelfHeal() {
                 .sh-policy-card p { margin: 0 0 12px; font-size: 0.85rem; color: #888; }
                 .sh-gen-btn {
                     padding: 8px 16px; background: rgba(0,255,245,0.1); border: 1px solid rgba(0,255,245,0.3);
-                    color: #00fff5; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+                    color: var(--info); border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
                 }
                 .sh-gen-btn:hover { background: rgba(0,255,245,0.2); }
 
@@ -374,7 +374,7 @@ export default function SelfHeal() {
                     background: rgba(255,255,255,0.03); border: 1px solid rgba(0,255,245,0.15);
                     border-radius: 14px; padding: 20px;
                 }
-                .sh-generated h4 { margin: 0 0 12px; color: #00fff5; }
+                .sh-generated h4 { margin: 0 0 12px; color: var(--info); }
                 .sh-code {
                     padding: 16px; background: rgba(0,0,0,0.4); border-radius: 10px;
                     font-size: 0.82rem; color: #ccc; overflow-x: auto; line-height: 1.5;
@@ -388,8 +388,8 @@ export default function SelfHeal() {
                 .sh-hist-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
                 .sh-hist-header strong { color: #ddd; }
                 .sh-hist-status { font-size: 0.78rem; padding: 3px 10px; border-radius: 5px; }
-                .sh-hist-status.pending_approval { color: #ffa502; background: rgba(255,165,2,0.1); }
-                .sh-hist-status.completed { color: #2ed573; background: rgba(46,213,115,0.1); }
+                .sh-hist-status.pending_approval { color: var(--warning); background: rgba(255,165,2,0.1); }
+                .sh-hist-status.completed { color: var(--success); background: rgba(46,213,115,0.1); }
                 .sh-hist-meta { font-size: 0.83rem; color: #888; }
 
                 .sh-loading, .sh-empty { color: #888; text-align: center; padding: 40px; }

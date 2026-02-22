@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const Incident = require('../../models/Incident');
 const { broadcast } = require('../../services/ws');
+const connectDB = require('../../config/db');
 
 // Simulated firewall/EDR state (in production, these call real APIs)
 const blockedIPs = new Set();
@@ -28,7 +29,7 @@ router.post('/block-ip', async (req, res) => {
         blockedIPs.add(ip);
         const entry = logAction('block_ip', ip, `IP ${ip} blocked in firewall`, !!incident_id);
 
-        if (incident_id) {
+        if (incident_id && connectDB.isConnected()) {
             await Incident.findByIdAndUpdate(incident_id, {
                 $push: { soar_actions: { action: 'block_ip', result: `Blocked ${ip}`, automated: !!incident_id } }
             });
@@ -59,7 +60,7 @@ router.post('/disable-user', async (req, res) => {
         disabledUsers.add(username);
         const entry = logAction('disable_user', username, `User ${username} disabled`, !!incident_id);
 
-        if (incident_id) {
+        if (incident_id && connectDB.isConnected()) {
             await Incident.findByIdAndUpdate(incident_id, {
                 $push: { soar_actions: { action: 'disable_user', result: `Disabled ${username}`, automated: false } }
             });
@@ -79,7 +80,7 @@ router.post('/trigger-edr', async (req, res) => {
         const { host, incident_id, severity = 'high' } = req.body;
         const entry = logAction('trigger_edr', host, `EDR alert triggered on ${host} [${severity}]`);
 
-        if (incident_id) {
+        if (incident_id && connectDB.isConnected()) {
             await Incident.findByIdAndUpdate(incident_id, {
                 $push: { soar_actions: { action: 'trigger_edr', result: `EDR alert on ${host}`, automated: false } }
             });
@@ -97,7 +98,7 @@ router.post('/trigger-edr', async (req, res) => {
 router.post('/generate-report', async (req, res) => {
     try {
         const { incident_id } = req.body;
-        const incident = incident_id ? await Incident.findById(incident_id) : null;
+        const incident = (incident_id && connectDB.isConnected()) ? await Incident.findById(incident_id) : null;
         const entry = logAction('generate_report', incident_id || 'manual', 'Incident report generated');
         res.json({ success: true, message: 'Report generated', entry, incident });
     } catch (err) {

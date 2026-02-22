@@ -22,7 +22,8 @@ router.post('/connect', async (req, res) => {
         broadcast({ type: 'sandbox_connected', sessionId: result.sessionId, host });
         res.json({ success: true, ...result, message: `Connected to ${host} — sandbox ready at ${result.sandboxDir}` });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        const status = err.message.includes('Authentication failed') || err.message.includes('SSH connection') || err.message.includes('Failed to create') ? 400 : 500;
+        res.status(status).json({ success: false, error: err.message });
     }
 });
 
@@ -89,66 +90,27 @@ router.get('/artifacts/:id', async (req, res) => {
     }
 });
 
-// POST /api/sandbox/analyze — Full dynamic analysis with agentic orchestration
+// POST /api/sandbox/analyze — Full forensic analysis pipeline
 router.post('/analyze', async (req, res) => {
     try {
-        const { session_id } = req.body;
+        const { session_id, file_path, file_name } = req.body;
+        if (!session_id) return res.status(400).json({ error: 'session_id required' });
+
         const sessionInfo = sandbox.getSession(session_id);
         if (!sessionInfo) return res.status(404).json({ error: 'Session not found' });
 
-        const { artifacts } = sessionInfo;
-        const geminiKey = process.env.GEMINI_API_KEY || '';
+        const targetPath = file_path || (sessionInfo.artifacts && sessionInfo.artifacts.sandboxPath);
+        const targetName = file_name || (sessionInfo.artifacts && sessionInfo.artifacts.filename);
 
-        // Run agentic orchestration on artifacts
-        const agent = new DynamicAnalysisAgent(geminiKey);
-        const dynamicReport = await agent.orchestrateAnalysis(artifacts);
+        if (!targetPath) return res.status(400).json({ error: 'Target file path missing - upload or specify a sample' });
 
-        // VirusTotal hash lookup for static baseline
-        let vtResult = null;
-        const vtKey = process.env.VT_API_KEY || '';
-        if (vtKey && artifacts.sha256) {
-            try {
-                const vtRes = await axios.get(`https://www.virustotal.com/api/v3/files/${artifacts.sha256}`, {
-                    headers: { 'x-apikey': vtKey }, timeout: 10000
-                });
-                const stats = vtRes.data?.data?.attributes?.last_analysis_stats || {};
-                vtResult = {
-                    malicious: stats.malicious || 0,
-                    suspicious: stats.suspicious || 0,
-                    harmless: stats.harmless || 0,
-                    total: Object.values(stats).reduce((a, b) => a + b, 0),
-                    verdict: stats.malicious > 0 ? 'MALICIOUS' : stats.suspicious > 0 ? 'SUSPICIOUS' : 'CLEAN',
-                    link: `https://www.virustotal.com/gui/file/${artifacts.sha256}`
-                };
-            } catch { }
-        }
+        const malwareService = require('../services/malwareAnalysisService');
+        const result = await malwareService.analyzeFile(session_id, targetPath, targetName);
 
-        // Combine dynamic + static analysis into comprehensive report
-        const finalReport = {
-            metadata: {
-                filename: artifacts.filename,
-                md5: artifacts.md5,
-                sha256: artifacts.sha256,
-                fileSize: artifacts.fileSize,
-                executedAt: artifacts.startTime,
-                executionTime: (new Date(artifacts.endTime) - new Date(artifacts.startTime)) / 1000,
-                exitCode: artifacts.exitCode
-            },
-            static_analysis: vtResult,
-            dynamic_analysis: dynamicReport,
-            consolidated_verdict: determineConsolidatedVerdict(vtResult, dynamicReport),
-            analysis_summary: {
-                total_iocs: (dynamicReport.iocs.ips || []).length + (dynamicReport.iocs.domains || []).length + (dynamicReport.iocs.files || []).length,
-                techniques_detected: (dynamicReport.techniques || []).length,
-                technologies_identified: (dynamicReport.technologies || {})
-            },
-            timestamp: new Date().toISOString()
-        };
+        // Broadcast completion for UI update
+        broadcast({ type: 'sandbox_analysis_complete', sessionId: session_id, report: result });
 
-        // Broadcast completion
-        broadcast({ type: 'sandbox_analysis_complete', sessionId: session_id, report: finalReport });
-
-        res.json({ success: true, report: finalReport, artifacts: { md5: artifacts.md5, sha256: artifacts.sha256, filename: artifacts.filename } });
+        res.json({ success: true, report: result });
     } catch (err) {
         console.error('[Sandbox] Analysis error:', err.message);
         res.status(500).json({ error: err.message });
@@ -159,6 +121,18 @@ router.post('/analyze', async (req, res) => {
 router.delete('/session/:id', async (req, res) => {
     try {
         const result = await sandbox.cleanupSession(req.params.id);
+        res.json({ success: true, ...result });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/sandbox/restore — Soft reset sandbox
+router.post('/restore', async (req, res) => {
+    try {
+        const { session_id } = req.body;
+        if (!session_id) return res.status(400).json({ error: 'session_id required' });
+        const result = await sandbox.restoreSnapshot(session_id);
         res.json({ success: true, ...result });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -195,5 +169,23 @@ function determineConsolidatedVerdict(vtResult, dynamicReport) {
     }
     return { verdict: 'UNKNOWN', confidence: 'LOW', action: 'MANUAL_REVIEW_REQUIRED' };
 }
+
+// POST /api/sandbox/analyze — Trigger autonomous malware analysis
+router.post('/analyze', async (req, res) => {
+    try {
+        const { session_id, file_path, file_name } = req.body;
+        if (!session_id || !file_path) {
+            return res.status(400).json({ error: 'session_id and file_path are required' });
+        }
+
+        const orchestrator = require('../services/autonomousOrchestrator');
+        const instance = new orchestrator(); // Or use a singleton if available
+        const result = await instance.runAutonomousMalwareAnalysis(session_id, file_path, file_name || 'unknown_sample');
+
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 module.exports = router;

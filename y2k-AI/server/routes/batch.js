@@ -3,7 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Scan = require('../models/Scan');
-const pythonBridge = require('../services/pythonBridge');
+const batchScanner = require('../services/batchScanner');
 const { broadcast } = require('../services/ws');
 
 const router = express.Router();
@@ -22,7 +22,9 @@ router.post('/', upload.array('files', 50), async (req, res) => {
     broadcast({ type: 'batch_start', count: filePaths.length });
 
     try {
-        const batchResult = await pythonBridge.batch(filePaths);
+        // Run batch scanner on the temp upload directory
+        const uploadDir = path.join(__dirname, '../uploads');
+        const batchResult = await batchScanner.runBatchScan(uploadDir);
         const results = batchResult.results || [];
 
         // Save each result to MongoDB

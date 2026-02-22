@@ -14,12 +14,18 @@ router.post('/chat', async (req, res) => {
         if (!message) return res.status(400).json({ error: 'message required' });
 
         // Get or create session
-        let session = session_id ? await AgentSession.findOne({ session_id }) : null;
-        if (!session) {
-            session = await AgentSession.create({
-                session_id: session_id || `session_${Date.now()}`,
-                mode, messages: []
-            });
+        let session = null;
+        try {
+            session = session_id ? await AgentSession.findOne({ session_id }) : null;
+            if (!session) {
+                session = await AgentSession.create({
+                    session_id: session_id || `session_${Date.now()}`,
+                    mode, messages: []
+                });
+            }
+        } catch (dbErr) {
+            console.warn('[AGENT] DB unavailable, using transient session');
+            session = { session_id: session_id || `session_${Date.now()}`, mode, messages: [], save: async () => { } };
         }
 
         // Build history for multi-turn context
@@ -41,7 +47,7 @@ router.post('/chat', async (req, res) => {
             role: 'agent', content: result.response, timestamp: new Date(),
             metadata: { intent: result.intent, mode, tools_used: result.toolsUsed?.length || 0 }
         });
-        await session.save();
+        try { await session.save(); } catch (e) { console.warn('[AGENT] Failed to save session:', e.message); }
 
         // Broadcast steps via WebSocket
         result.steps?.forEach(step => broadcast({ type: 'agent_step', session_id: session.session_id, step }));
@@ -79,12 +85,18 @@ router.get('/stream', async (req, res) => {
 
     try {
         // Get session history
-        let session = session_id ? await AgentSession.findOne({ session_id }) : null;
-        if (!session) {
-            session = await AgentSession.create({
-                session_id: session_id || `session_${Date.now()}`,
-                mode, messages: []
-            });
+        let session = null;
+        try {
+            session = session_id ? await AgentSession.findOne({ session_id }) : null;
+            if (!session) {
+                session = await AgentSession.create({
+                    session_id: session_id || `session_${Date.now()}`,
+                    mode, messages: []
+                });
+            }
+        } catch (dbErr) {
+            console.warn('[AGENT STREAM] DB unavailable, using transient session');
+            session = { session_id: session_id || `session_${Date.now()}`, mode, messages: [], save: async () => { } };
         }
 
         const history = session.messages.slice(-6).map(m => ({
@@ -122,12 +134,13 @@ router.get('/stream', async (req, res) => {
             timestamp: new Date(),
             metadata: { intent: 'stream', mode }
         });
-        await session.save();
+        try { await session.save(); } catch (e) { console.warn('[AGENT STREAM] Failed to save session:', e.message); }
 
         send('done', { session_id: session.session_id, mode, intent: result?.intent });
         res.end();
 
     } catch (err) {
+        console.error('[AGENT STREAM] error', err);
         send('error', { message: err.message });
         res.end();
     }
@@ -178,12 +191,18 @@ router.post('/consult', async (req, res) => {
         const { session_id, message, mode = 'blue', sandbox_session_id = null } = req.body;
         if (!message) return res.status(400).json({ error: 'message required' });
 
-        let session = session_id ? await AgentSession.findOne({ session_id }) : null;
-        if (!session) {
-            session = await AgentSession.create({
-                session_id: session_id || `session_${Date.now()}`,
-                mode, messages: []
-            });
+        let session = null;
+        try {
+            session = session_id ? await AgentSession.findOne({ session_id }) : null;
+            if (!session) {
+                session = await AgentSession.create({
+                    session_id: session_id || `session_${Date.now()}`,
+                    mode, messages: []
+                });
+            }
+        } catch (dbErr) {
+            console.warn('[AGENT CONSULT] DB unavailable, using transient session');
+            session = { session_id: session_id || `session_${Date.now()}`, mode, messages: [], save: async () => { } };
         }
 
         const history = session.messages.slice(-6).map(m => ({

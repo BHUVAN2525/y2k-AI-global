@@ -1,15 +1,21 @@
 const mongoose = require('mongoose');
 
 let _connected = false;
+let currentUri = process.env.MONGO_URI || 'mongodb://localhost:27017/cerebus';
 
-const connectDB = async () => {
+const connectDB = async (uri = currentUri) => {
     try {
+        if (mongoose.connection.readyState === 1) {
+            await mongoose.disconnect();
+        }
+
         // disable buffering so queries fail fast if down
         mongoose.set('bufferCommands', false);
-        const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/cerebus', {
+        const conn = await mongoose.connect(uri, {
             serverSelectionTimeoutMS: 2000
         });
-        console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+        currentUri = uri;
+        console.log(`✅ MongoDB connected: ${conn.connection.host} (${uri})`);
         _connected = true;
     } catch (err) {
         console.error('❌ MongoDB connection failed:', err.message);
@@ -19,5 +25,9 @@ const connectDB = async () => {
 };
 
 connectDB.isConnected = () => _connected;
+connectDB.switchConnection = async (newUri) => {
+    console.log(`[DB] Switching connection to: ${newUri}`);
+    await connectDB(newUri);
+};
 
 module.exports = connectDB;

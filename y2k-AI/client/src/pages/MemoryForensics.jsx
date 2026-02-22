@@ -26,7 +26,7 @@ export default function MemoryForensics() {
     }
 
     const getThreatColor = (level) => {
-        const c = { critical: '#ff4757', high: '#ffa502', medium: '#3742fa', low: '#2ed573' }
+        const c = { critical: 'var(--danger)', high: 'var(--warning)', medium: '#3742fa', low: 'var(--success)' }
         return c[level] || '#888'
     }
 
@@ -53,9 +53,9 @@ export default function MemoryForensics() {
                             </div>
                             <div className="mf-stats">
                                 <div className="mf-stat"><strong>{analysis.summary.total_processes}</strong><span>Processes</span></div>
-                                <div className="mf-stat"><strong style={{ color: '#ff4757' }}>{analysis.summary.suspicious_processes}</strong><span>Suspicious</span></div>
-                                <div className="mf-stat"><strong style={{ color: '#ffa502' }}>{analysis.summary.api_hooks_detected}</strong><span>Hooks</span></div>
-                                <div className="mf-stat"><strong style={{ color: '#b388ff' }}>{analysis.summary.dll_injections}</strong><span>Injections</span></div>
+                                <div className="mf-stat"><strong style={{ color: 'var(--danger)' }}>{analysis.summary.suspicious_processes}</strong><span>Suspicious</span></div>
+                                <div className="mf-stat"><strong style={{ color: 'var(--warning)' }}>{analysis.summary.api_hooks_detected}</strong><span>Hooks</span></div>
+                                <div className="mf-stat"><strong style={{ color: 'var(--primary)' }}>{analysis.summary.dll_injections}</strong><span>Injections</span></div>
                             </div>
                             <span className="mf-time">⏱ {analysis.analysis_time}</span>
                         </motion.div>
@@ -191,10 +191,10 @@ export default function MemoryForensics() {
             <style>{`
                 .mf-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
                 .mf-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
-                .mf-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .mf-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .mf-subtitle { color: #888; margin-top: 4px; }
                 .mf-scan-btn {
-                    padding: 12px 28px; background: linear-gradient(135deg, #00fff5, #7c4dff);
+                    padding: 12px 28px; background: var(--bg-secondary), var(--primary));
                     border: none; border-radius: 10px; color: #000; font-weight: 700;
                     cursor: pointer; transition: all 0.3s; white-space: nowrap;
                 }
@@ -223,7 +223,7 @@ export default function MemoryForensics() {
                     padding: 8px 18px; border: 1px solid rgba(255,255,255,0.1); background: transparent;
                     color: #999; border-radius: 8px; cursor: pointer; text-transform: capitalize; font-size: 0.88rem;
                 }
-                .mf-tab.active { background: rgba(0,255,245,0.1); border-color: rgba(0,255,245,0.3); color: #00fff5; }
+                .mf-tab.active { background: rgba(0,255,245,0.1); border-color: rgba(0,255,245,0.3); color: var(--info); }
 
                 .mf-section { margin-bottom: 24px; }
                 .mf-section h3 { color: #e0e0e0; margin: 0 0 14px; }
@@ -233,28 +233,28 @@ export default function MemoryForensics() {
                     border-radius: 8px; margin-bottom: 4px; cursor: pointer; transition: all 0.2s;
                 }
                 .mf-proc:hover { border-color: rgba(0,255,245,0.15); }
-                .mf-proc.suspicious { border-left: 3px solid #ff4757; }
+                .mf-proc.suspicious { border-left: 3px solid var(--danger); }
                 .mf-proc-main { display: flex; align-items: center; gap: 12px; }
                 .mf-pid { color: #888; font-family: monospace; font-size: 0.85rem; min-width: 50px; }
                 .mf-pname { color: #ddd; font-weight: 600; min-width: 140px; }
                 .mf-puser { color: #888; font-size: 0.85rem; min-width: 80px; }
                 .mf-pmem { color: #aaa; font-size: 0.85rem; margin-left: auto; }
-                .mf-badge-sus { font-size: 0.7rem; color: #ff4757; background: rgba(255,71,87,0.12); padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+                .mf-badge-sus { font-size: 0.7rem; color: var(--danger); background: rgba(255,71,87,0.12); padding: 2px 8px; border-radius: 4px; font-weight: 700; }
                 .mf-proc-detail { padding: 8px 0 0; font-size: 0.83rem; color: #888; }
-                .mf-anomaly { color: #ff4757; font-size: 0.83rem; margin-top: 4px; }
-                .mf-mitre-tag { color: #b388ff; font-size: 0.8rem; margin-top: 2px; }
+                .mf-anomaly { color: var(--danger); font-size: 0.83rem; margin-top: 4px; }
+                .mf-mitre-tag { color: var(--primary); font-size: 0.8rem; margin-top: 2px; }
 
                 .mf-hook { padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px; }
-                .mf-hook.suspicious { border-left: 3px solid #ffa502; }
+                .mf-hook.suspicious { border-left: 3px solid var(--warning); }
                 .mf-hook-main { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
                 .mf-hook-main strong { color: #ddd; }
                 .mf-hook-main span { color: #888; font-size: 0.85rem; }
-                .mf-hook-type { background: rgba(124,77,255,0.12); color: #b388ff; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
+                .mf-hook-type { background: rgba(124,77,255,0.12); color: var(--primary); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
                 .mf-hook-detail { font-size: 0.83rem; color: #999; }
-                .mf-hook-detail code { color: #ffa502; }
+                .mf-hook-detail code { color: var(--warning); }
 
                 .mf-string { display: flex; align-items: center; gap: 12px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 4px; }
-                .mf-str-type { font-size: 0.7rem; color: #00fff5; background: rgba(0,255,245,0.08); padding: 2px 8px; border-radius: 4px; text-transform: uppercase; min-width: 60px; text-align: center; }
+                .mf-str-type { font-size: 0.7rem; color: var(--info); background: rgba(0,255,245,0.08); padding: 2px 8px; border-radius: 4px; text-transform: uppercase; min-width: 60px; text-align: center; }
                 .mf-string code { color: #ddd; font-size: 0.85rem; }
                 .mf-str-ctx { color: #888; font-size: 0.8rem; margin-left: auto; }
 
@@ -263,7 +263,7 @@ export default function MemoryForensics() {
                     padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
                     border-radius: 10px; display: flex; flex-direction: column; gap: 4px;
                 }
-                .mf-mitre-id { font-size: 0.75rem; color: #b388ff; }
+                .mf-mitre-id { font-size: 0.75rem; color: var(--primary); }
                 .mf-mitre-card strong { color: #e0e0e0; }
                 .mf-mitre-sev { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
 
@@ -277,7 +277,7 @@ export default function MemoryForensics() {
                 .mf-ov-item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.88rem; color: #ccc; }
                 .mf-ov-item div { font-size: 0.82rem; color: #888; margin-top: 2px; }
 
-                .mf-error { color: #ff4757; padding: 20px; text-align: center; }
+                .mf-error { color: var(--danger); padding: 20px; text-align: center; }
             `}</style>
         </div>
     )

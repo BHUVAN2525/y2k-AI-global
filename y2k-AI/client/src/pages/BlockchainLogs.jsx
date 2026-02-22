@@ -63,9 +63,9 @@ export default function BlockchainLogs() {
     }
 
     const getSevColor = (sev) => {
-        if (sev === 'critical') return '#ff4757'
-        if (sev === 'warning') return '#ffa502'
-        return '#2ed573'
+        if (sev === 'critical') return 'var(--danger)'
+        if (sev === 'warning') return 'var(--warning)'
+        return 'var(--success)'
     }
 
     const totalEvents = chain.reduce((s, b) => s + b.events, 0)
@@ -89,11 +89,11 @@ export default function BlockchainLogs() {
                     <div className="bl-stat"><strong>{chain.length}</strong><span>Blocks</span></div>
                     <div className="bl-stat"><strong>{totalEvents}</strong><span>Events</span></div>
                     <div className="bl-stat">
-                        <strong style={{ color: tamperedBlocks > 0 ? '#ff4757' : '#2ed573' }}>{tamperedBlocks}</strong>
+                        <strong style={{ color: tamperedBlocks > 0 ? 'var(--danger)' : 'var(--success)' }}>{tamperedBlocks}</strong>
                         <span>Tampered</span>
                     </div>
                     <div className="bl-stat">
-                        <strong style={{ color: '#2ed573' }}>{((chain.filter(b => b.verified).length / chain.length) * 100).toFixed(1)}%</strong>
+                        <strong style={{ color: 'var(--success)' }}>{((chain.filter(b => b.verified).length / chain.length) * 100).toFixed(1)}%</strong>
                         <span>Integrity</span>
                     </div>
                 </div>
@@ -164,10 +164,10 @@ export default function BlockchainLogs() {
             <style>{`
                 .bl-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
                 .bl-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-                .bl-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .bl-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .bl-subtitle { color: #888; margin-top: 4px; }
                 .bl-verify-btn {
-                    padding: 10px 22px; background: linear-gradient(135deg, #2ed573, #00b894);
+                    padding: 10px 22px; background: var(--bg-secondary), #00b894);
                     border: none; border-radius: 10px; color: #000; font-weight: 700; cursor: pointer; transition: all 0.3s;
                 }
                 .bl-verify-btn:disabled { opacity: 0.5; }
@@ -180,9 +180,9 @@ export default function BlockchainLogs() {
                 .bl-verify-result {
                     padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 20px; align-items: center;
                 }
-                .bl-verify-result.valid { background: rgba(46,213,115,0.08); border: 1px solid rgba(46,213,115,0.2); color: #2ed573; }
-                .bl-verify-result.invalid { background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.2); color: #ff4757; }
-                .bl-tampered-count { color: #ff4757; font-weight: 700; }
+                .bl-verify-result.valid { background: rgba(46,213,115,0.08); border: 1px solid rgba(46,213,115,0.2); color: var(--success); }
+                .bl-verify-result.invalid { background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.2); color: var(--danger); }
+                .bl-tampered-count { color: var(--danger); font-weight: 700; }
 
                 .bl-chain { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
                 .bl-block {
@@ -190,13 +190,13 @@ export default function BlockchainLogs() {
                     border-radius: 10px; cursor: pointer; min-width: 120px; position: relative; transition: all 0.2s;
                 }
                 .bl-block:hover { border-color: rgba(0,255,245,0.2); }
-                .bl-block.selected { border-color: #00fff5; background: rgba(0,255,245,0.05); }
+                .bl-block.selected { border-color: var(--info); background: rgba(0,255,245,0.05); }
                 .bl-block.tampered { border-color: rgba(255,71,87,0.3); }
                 .bl-block-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
                 .bl-block-idx { color: #888; font-size: 0.78rem; font-weight: 700; }
-                .bl-block-status.ok { color: #2ed573; }
-                .bl-block-status.bad { color: #ff4757; }
-                .bl-block-hash { font-family: monospace; font-size: 0.72rem; color: #00fff5; margin-bottom: 4px; }
+                .bl-block-status.ok { color: var(--success); }
+                .bl-block-status.bad { color: var(--danger); }
+                .bl-block-hash { font-family: monospace; font-size: 0.72rem; color: var(--info); margin-bottom: 4px; }
                 .bl-block-meta { display: flex; justify-content: space-between; }
                 .bl-block-meta span { font-size: 0.7rem; color: #888; }
                 .bl-chain-link { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: #444; }
@@ -207,17 +207,17 @@ export default function BlockchainLogs() {
                 .bl-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
                 .bl-field { display: flex; flex-direction: column; gap: 2px; }
                 .bl-field span { font-size: 0.78rem; color: #888; }
-                .bl-field code { font-size: 0.75rem; color: #00fff5; word-break: break-all; }
+                .bl-field code { font-size: 0.75rem; color: var(--info); word-break: break-all; }
 
                 .bl-entry {
                     display: flex; align-items: center; gap: 10px; padding: 6px 8px;
                     background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 4px;
                 }
-                .bl-entry-type { font-size: 0.7rem; color: #b388ff; background: rgba(179,136,255,0.1); padding: 2px 6px; border-radius: 4px; min-width: 65px; text-align: center; }
+                .bl-entry-type { font-size: 0.7rem; color: var(--primary); background: rgba(179,136,255,0.1); padding: 2px 6px; border-radius: 4px; min-width: 65px; text-align: center; }
                 .bl-entry-sev { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; min-width: 55px; }
                 .bl-entry-msg { flex: 1; font-size: 0.83rem; color: #ccc; }
-                .bl-entry-verified.ok { color: #2ed573; }
-                .bl-entry-verified.bad { color: #ff4757; }
+                .bl-entry-verified.ok { color: var(--success); }
+                .bl-entry-verified.bad { color: var(--danger); }
             `}</style>
         </div>
     )

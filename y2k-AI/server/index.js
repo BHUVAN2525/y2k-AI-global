@@ -19,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 wss.on('connection', (ws) => registerClient(ws));
 
 // ── Routes ──────────────────────────────────────────────────────────────────
+
 // Core (existing)
 app.use('/api/analyze', require('./routes/analyze'));
 app.use('/api/batch', require('./routes/batch'));
@@ -51,6 +52,18 @@ app.use('/api/red', require('./routes/red/cve'));
 // 📡 Threat Intelligence
 app.use('/api/threatintel', require('./routes/threatintel'));
 
+// ⚖️ GRC
+app.use('/api/grc', require('./routes/grc'));
+
+// 🏦 Banking Security
+app.use('/api/banking', require('./routes/banking'));
+
+// 🏗️ IT Infrastructure
+app.use('/api/infra', require('./routes/infrastructure'));
+
+// ⚔️ Battle Records
+app.use('/api/battles', require('./routes/battles'));
+
 // 🩹 Self-Healing + Policy Generation
 app.use('/api/selfheal', require('./routes/selfheal'));
 
@@ -71,7 +84,6 @@ async function start() {
   server.listen(PORT, () => {
     console.log(`🚀 Y2K Cyber AI Server running on http://localhost:${PORT}`);
     console.log(`🔌 WebSocket available at ws://localhost:${PORT}/ws`);
-    console.log(`🐍 Python API expected at ${process.env.PYTHON_API_URL}`);
     console.log(`🔵 Blue Mode: /api/blue/*`);
     console.log(`🔴 Red Mode:  /api/red/*`);
     console.log(`🤖 Agents:    /api/agent/*`);
@@ -80,3 +92,14 @@ async function start() {
 }
 
 start().catch(err => { console.error('Startup failed:', err); process.exit(1); });
+
+// ── Stability Handlers ────────────────────────────────────────────────────────
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[UNHANDLED REJECTION] at:', promise, 'reason:', reason);
+  // Don't exit, keep engine running
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[UNCAUGHT EXCEPTION] thrown:', err);
+  // Don't exit, keep engine running
+});

@@ -64,7 +64,7 @@ export default function SwarmStatus() {
                     <div className="supervisor-icon">👁️</div>
                     <div>
                         <h3>Supervisor Agent</h3>
-                        <p>Routes queries to the best specialist. Mode: <strong style={{ color: swarm.current_mode === 'blue' ? '#00fff5' : '#ff4757' }}>{swarm.current_mode?.toUpperCase()}</strong></p>
+                        <p>Routes queries to the best specialist. Mode: <strong style={{ color: swarm.current_mode === 'blue' ? 'var(--info)' : 'var(--danger)' }}>{swarm.current_mode?.toUpperCase()}</strong></p>
                     </div>
                     <div className="supervisor-stats">
                         <div className="stat-item">
@@ -127,21 +127,21 @@ export default function SwarmStatus() {
             <style>{`
                 .swarm-container { padding: 24px; max-width: 1200px; margin: 0 auto; }
                 .swarm-header { margin-bottom: 32px; }
-                .swarm-header h1 { font-size: 1.8rem; color: #00fff5; margin: 0; }
+                .swarm-header h1 { font-size: 1.8rem; color: var(--info); margin: 0; }
                 .swarm-subtitle { color: #888; margin-top: 4px; }
 
                 .swarm-supervisor-card {
                     display: flex; align-items: center; gap: 20px;
-                    background: linear-gradient(135deg, rgba(0,255,245,0.05), rgba(124,77,255,0.05));
+                    background: var(--bg-secondary), rgba(124,77,255,0.05));
                     border: 1px solid rgba(0,255,245,0.15); border-radius: 16px;
                     padding: 24px; margin-bottom: 32px;
                 }
                 .supervisor-icon { font-size: 2.5rem; }
-                .swarm-supervisor-card h3 { margin: 0; color: #00fff5; font-size: 1.2rem; }
+                .swarm-supervisor-card h3 { margin: 0; color: var(--info); font-size: 1.2rem; }
                 .swarm-supervisor-card p { margin: 4px 0 0; color: #aaa; font-size: 0.9rem; }
                 .supervisor-stats { margin-left: auto; display: flex; gap: 24px; }
                 .stat-item { text-align: center; }
-                .stat-value { display: block; font-size: 1.5rem; font-weight: 800; color: #00fff5; }
+                .stat-value { display: block; font-size: 1.5rem; font-weight: 800; color: var(--info); }
                 .stat-label { font-size: 0.75rem; color: #888; letter-spacing: 0.5px; }
 
                 .swarm-agents-grid {
@@ -158,7 +158,7 @@ export default function SwarmStatus() {
 
                 .agent-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
                 .agent-icon { font-size: 1.8rem; }
-                .agent-status { font-size: 0.75rem; color: #2ed573; }
+                .agent-status { font-size: 0.75rem; color: var(--success); }
                 .agent-name { margin: 0; color: #e0e0e0; font-size: 1rem; }
                 .agent-specialty {
                     font-size: 0.78rem; color: #888; display: block; margin-top: 4px;
@@ -168,7 +168,7 @@ export default function SwarmStatus() {
                     position: absolute; bottom: 12px; right: 12px;
                 }
                 .pulse-dot {
-                    width: 8px; height: 8px; background: #2ed573; border-radius: 50%;
+                    width: 8px; height: 8px; background: var(--success); border-radius: 50%;
                     position: relative; z-index: 1;
                 }
                 .pulse-ring {
@@ -192,8 +192,8 @@ export default function SwarmStatus() {
                     padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 0.9rem;
                 }
                 .arch-supervisor {
-                    background: linear-gradient(135deg, rgba(0,255,245,0.15), rgba(124,77,255,0.15));
-                    border: 1px solid rgba(0,255,245,0.3); color: #00fff5;
+                    background: var(--bg-secondary), rgba(124,77,255,0.15));
+                    border: 1px solid rgba(0,255,245,0.3); color: var(--info);
                 }
                 .arch-agent {
                     background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
@@ -205,7 +205,7 @@ export default function SwarmStatus() {
                 .arch-line { display: flex; flex-direction: column; align-items: center; gap: 8px; }
                 .arch-connector {
                     width: 2px; height: 20px;
-                    background: linear-gradient(180deg, rgba(0,255,245,0.4), rgba(255,255,255,0.1));
+                    background: var(--bg-secondary), rgba(255,255,255,0.1));
                 }
 
                 .swarm-loading, .swarm-error { color: #888; text-align: center; padding: 60px; }

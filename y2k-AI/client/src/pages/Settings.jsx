@@ -66,16 +66,25 @@ function SSHTestPanel({ settings, onChange }) {
         setTesting(true)
         setResult(null)
         try {
-            const res = await axios.post('/api/settings/test-ssh', {
+            const body = {
                 host: settings.ssh_host,
                 port: settings.ssh_port || 22,
                 username: settings.ssh_user,
-                password: settings.ssh_password,
                 authMethod: settings.ssh_auth || 'password'
-            })
+            };
+            if (settings.ssh_auth === 'key') {
+                body.privateKey = settings.ssh_private_key;
+            } else {
+                body.password = settings.ssh_password;
+            }
+            const res = await axios.post('/api/settings/test-ssh', body)
             setResult({ ok: true, msg: res.data.message, system: res.data.system })
         } catch (err) {
-            setResult({ ok: false, msg: err.response?.data?.error || err.message })
+            const data = err.response?.data || {}
+            let message = data.error || err.message
+            if (data.code) message += ` (code: ${data.code})`
+            if (data.level) message += ` [${data.level}]`
+            setResult({ ok: false, msg: message })
         } finally {
             setTesting(false)
         }
@@ -110,13 +119,13 @@ function SSHTestPanel({ settings, onChange }) {
             }
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
                 <button onClick={test} disabled={testing || !settings.ssh_host} style={{
-                    padding: '0.5rem 1.25rem', background: 'linear-gradient(135deg,#00d4ff,#0066cc)',
+                    padding: '0.5rem 1.25rem', background: 'var(--bg-secondary),#0066cc)',
                     color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem'
                 }}>{testing ? '⏳ Testing...' : '🔌 Test Connection'}</button>
                 <AnimatePresence>
                     {result && (
                         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                            style={{ fontSize: '0.82rem', color: result.ok ? '#00ff88' : '#ff3366', fontFamily: 'var(--font-mono)' }}>
+                            style={{ fontSize: '0.82rem', color: result.ok ? 'var(--success)' : 'var(--danger)', fontFamily: 'var(--font-mono)' }}>
                             {result.ok ? `✓ ${result.msg}` : `✗ ${result.msg}`}
                             {result.system && <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: '0.2rem' }}>{result.system}</div>}
                         </motion.div>
@@ -131,7 +140,7 @@ function SSHTestPanel({ settings, onChange }) {
 export default function Settings() {
     const [settings, setSettings] = useState({
         gemini_api_key: '', vt_api_key: '', abuseipdb_key: '',
-        python_api_url: 'http://localhost:8001', mongo_uri: '',
+        mongo_uri: '',
         ssh_host: '', ssh_port: '22', ssh_user: 'root', ssh_password: '', ssh_auth: 'password', ssh_private_key: ''
     })
     const [saved, setSaved] = useState(false)
@@ -148,10 +157,12 @@ export default function Settings() {
                 gemini_api_key: s.gemini_api_key || '',
                 vt_api_key: s.vt_api_key || '',
                 abuseipdb_key: s.abuseipdb_key || '',
-                python_api_url: s.python_api_url || prev.python_api_url,
-                mongo_uri: s.mongo_uri || '',
+                mongo_uri: s.mongo_uri || prev.mongo_uri,
             }))
-        }).catch(() => { }).finally(() => setLoading(false))
+        }).catch(err => {
+            console.error('[Settings] failed to load keys', err);
+            setError('Failed to load settings: ' + (err.response?.data?.error || err.message));
+        }).finally(() => setLoading(false))
     }, [])
 
     const update = (key, value) => setSettings(s => ({ ...s, [key]: value }))
@@ -165,7 +176,7 @@ export default function Settings() {
             if (settings.gemini_api_key && !settings.gemini_api_key.includes('•')) serverKeys.gemini_api_key = settings.gemini_api_key
             if (settings.vt_api_key && !settings.vt_api_key.includes('•')) serverKeys.vt_api_key = settings.vt_api_key
             if (settings.abuseipdb_key && !settings.abuseipdb_key.includes('•')) serverKeys.abuseipdb_key = settings.abuseipdb_key
-            if (settings.python_api_url) serverKeys.python_api_url = settings.python_api_url
+            // python_api_url is no longer user-configurable; backend uses localhost by default
             if (settings.mongo_uri && !settings.mongo_uri.includes('•')) serverKeys.mongo_uri = settings.mongo_uri
 
             if (Object.keys(serverKeys).length > 0) {
@@ -198,13 +209,13 @@ export default function Settings() {
                 </div>
                 <button onClick={save} disabled={saving} style={{
                     padding: '0.6rem 1.5rem', fontWeight: 700, fontSize: '0.9rem',
-                    background: saved ? 'linear-gradient(135deg,#00ff88,#00cc66)' : 'linear-gradient(135deg,#00d4ff,#0066cc)',
+                    background: saved ? 'var(--bg-secondary),#00cc66)' : 'var(--bg-secondary),#0066cc)',
                     color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer',
                     boxShadow: '0 0 16px rgba(0,212,255,0.3)', transition: 'all 0.2s'
                 }}>{saving ? '⏳ Saving...' : saved ? '✓ Saved!' : '💾 Save All'}</button>
             </div>
 
-            {error && <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,51,102,0.1)', border: '1px solid rgba(255,51,102,0.3)', borderRadius: 8, color: '#ff3366', marginBottom: '1rem', fontSize: '0.85rem' }}>❌ {error}</div>}
+            {error && <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,51,102,0.1)', border: '1px solid rgba(255,51,102,0.3)', borderRadius: 8, color: 'var(--danger)', marginBottom: '1rem', fontSize: '0.85rem' }}>❌ {error}</div>}
 
             <div style={{ maxWidth: 760 }}>
                 {/* AI Keys */}
@@ -236,12 +247,6 @@ export default function Settings() {
                 {/* Service URLs */}
                 <Section icon="🔌" title="Service Configuration">
                     <ApiKeyField
-                        label="Python API URL" keyName="python_api_url" type="text"
-                        value={settings.python_api_url} onChange={update}
-                        placeholder="http://localhost:8001"
-                        hint="URL of the Python FastAPI analysis engine"
-                    />
-                    <ApiKeyField
                         label="MongoDB URI" keyName="mongo_uri" type="password"
                         value={settings.mongo_uri} onChange={update}
                         placeholder="mongodb://localhost:27017/y2k_cyber_ai"
@@ -253,6 +258,7 @@ export default function Settings() {
                 <Section icon="🖥️" title="Sandbox VM — SSH Configuration" accent="rgba(255,51,102,0.3)">
                     <div style={{ padding: '0.6rem 0.9rem', background: 'rgba(255,51,102,0.08)', border: '1px solid rgba(255,51,102,0.2)', borderRadius: 8, marginBottom: '1.25rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                         ⚠️ Connect your own VM (VirtualBox, VMware, cloud VM) for dynamic malware analysis. All execution happens on your VM — never on this host.
+                        <br />Ensure the machine is reachable from the server host (use bridged/host‑only networking), SSH port is open, and credentials are correct.
                     </div>
                     <SSHTestPanel settings={settings} onChange={update} />
                 </Section>
