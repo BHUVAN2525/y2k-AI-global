@@ -1,14 +1,14 @@
-# Y2K Cyber AI — Autonomous Defense Platform
+# CCB Karnataka Core Engine — Public Security Platform (GUI Edition)
 
-> **AI-Powered SOC Analyst • Multi-Agent Swarm • Red Team Simulator • Self-Healing Security • Cyber Range**
+> **Official Cyber Crime Branch (Karnataka) Core Engine • Fully Automated Defense • AI GRC Policy Orchestrator • Cyber Security Command Center**
 
 ---
 
 ## 🚀 What Is It?
 
-**Y2K Cyber AI** is a next-generation cybersecurity platform that unifies defensive analysis, offensive simulation, threat intelligence, and autonomous security operations into a single AI-driven interface.
+The **CCB Karnataka Core Engine** is a state-of-the-art, GUI-based cybersecurity platform designed for the public security infrastructure of the Karnataka Cyber Crime Branch. It serves as the automated heart of defensive operations, unifying forensic analysis, threat intelligence, and legal-compliant policy enforcement.
 
-Built across **5 implementation phases**, the platform delivers **15+ features** spanning a React frontend (11 pages), a Node.js API gateway, and multi-agent AI orchestration powered by Google Gemini.
+Built as a **fully automated system**, it delivers **15+ features** spanning a React-powered command interface, a robust Node.js core, and multi-agent AI orchestration powered by Google Gemini to ensure public safety in the digital realm.
 
 ---
 
@@ -37,16 +37,16 @@ Built across **5 implementation phases**, the platform delivers **15+ features**
 ## 🔥 Features by Phase
 
 ### Phase 1–2: Core Platform
+### Automated Defense & Policy
 | Feature | Description |
 |---------|-------------|
-| **🧠 Multi-Agent Swarm** | Supervisor-orchestrated swarm of specialized AI agents with real-time status monitoring |
-| **📡 Threat Intelligence** | Live feed aggregation from VirusTotal & AbuseIPDB with IOC enrichment and correlation |
-| **🩹 Self-Healing Engine** | Automated threat remediation with AI-generated action plans, CVE patch DB, and policy generation |
-| **🧬 Memory Forensics** | Deep memory analysis for process injection, rootkits, and hidden modules |
-| **🧪 Malware Analysis** | Static + dynamic analysis with ML classification (Random Forest) and sandbox execution |
-| **🤖 Autonomous Blue Agent** | Self-directing 7-phase SOC defense workflow with zero user intervention |
-| **🎯 Autonomous Red Agent** | Self-directing 10-phase attack simulation (lab-only enforced) with defense recommendations |
-| **⚡ Orchestrator Service** | Runs Blue + Red simultaneously, correlates results, identifies detection gaps |
+| **🧠 Multi-Agent Swarm** | Supervisor-orchestrated swarm of specialized AI agents monitoring Karnataka's public digital assets |
+| **📡 Threat Intelligence** | Live IOC enrichment and correlation to detect patterns targeting regional infrastructure |
+| **🩹 Self-Healing Engine** | Automated threat remediation with AI-generated action plans and immutable policy generation |
+| **⚖️ AI GRC Orchestrator** | **Fully automated** Governance, Risk, and Compliance engine that updates local security policies in real-time based on public laws and regulations |
+| **🧪 Malware Analysis** | Automated static + dynamic analysis with ML classification within secure CCB-authorized sandboxes |
+| **🤖 Autonomous Blue Agent** | Self-directing 7-phase SOC defense workflow requiring zero manual intervention |
+| **⚡ CCB Command Service** | Orchestrates defensive operations, correlates results, and ensures legal-compliant reporting |
 
 ### Phase 3: Visualization & Simulation
 | Feature | Description |
@@ -256,10 +256,10 @@ Some configuration (e.g. `PYTHON_API_URL`) is read once at server startup. After
 
 ---
 
-## 📜 License
+## 📜 Legal & Compliance
 
-MIT License.
+The CCB Karnataka Core Engine operates within the legal framework of the Information Technology Act and relevant regional public laws. Its automated GRC module ensures that all security policies are updated to maintain the highest standards of legal compliance and public safety.
 
 ---
 
-*Built with ❤️ by the Y2K Cyber AI Project Team.*
+*Mission-critical security infrastructure for CCB Karnataka.*
